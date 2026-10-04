@@ -13,8 +13,8 @@
 /cache/
 /files/
 
-# 编译产物
-/bin/
+# 编译产物（统一输出到 dist/）
+/dist/
 /lylme_spage_go
 *.exe
 *.test

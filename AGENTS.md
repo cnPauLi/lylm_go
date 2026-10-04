@@ -35,6 +35,7 @@
 │   ├── router/                 # 路由注册
 │   ├── webutil/                # 会话/CSRF/验证码/工具
 │   └── pages/ 或 admin/        # 页面处理器（handler）
+├── dist/                       # 编译产物（统一输出目录，不入库）
 ├── data/ logs/ cache/ files/   # 运行期生成物（不入库）
 ```
 
@@ -118,16 +119,19 @@
 
 - 建立 Git 版本；**每完成一个阶段提交一次**，保持工作区干净。
 - 提交信息格式：`feat(阶段N): 摘要` / `fix(阶段N): 摘要` / `chore(阶段N): 摘要`。
-- 禁止提交 `.env`、`data/`、`logs/`、`cache/`、`files/`（见 `.gitignore`）。
+- 禁止提交 `.env`、`dist/`、`data/`、`logs/`、`cache/`、`files/`（见 `.gitignore`）。
 
 ## 12. 测试与构建
 
 ```bash
 export PATH=/Users/macbookpro/sdk/go1.26.2/bin:$PATH
-go build ./...
+go build -o dist/lylme_spage .   # 编译产物必须输出到 dist/，禁止落在根目录或 tmp/
 go vet ./...
 go test ./...
 ```
+
+- **二进制统一构建到项目根 `dist/` 目录**；`go build ./...` 仅用于编译校验，不产生产物。
+- 运行 `dist/lylme_spage` 时需在项目根目录执行，或设置 `APP_ROOT` 指向项目根（见 §4），确保日志等运行期路径解析到根目录而非 `dist/`。
 
 - 新增核心解析/业务逻辑需补充单元测试（参考 `internal/theme/config_test.go`）。
 
