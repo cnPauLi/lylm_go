@@ -1,7 +1,8 @@
 package theme
 
 import (
-	"regexp"
+	"bytes"
+	"encoding/json"
 	"strings"
 )
 
@@ -11,7 +12,7 @@ type EnumOption struct {
 	Label string
 }
 
-// Field 主题自定义配置项（对应 config.php 中 $theme_config 的一个元素）
+// Field 主题自定义配置项（对应 theme.ini 中 theme_config 数组的一个元素）
 type Field struct {
 	Type        string
 	Name        string
@@ -46,420 +47,100 @@ func (f Field) DefaultValueList() []string {
 	return nil
 }
 
-// phpValue 解析后的 PHP 值类型
-type phpKV struct {
-	key any
-	val any
-}
-
-type phpArray struct {
-	items []phpKV
-}
-
-type phpExpr struct {
-	raw string
-}
-
-// ParseConfig 解析主题 config.php，提取 $theme_config 数组定义
+// ParseConfig 解析 theme.ini 文本，提取顶层 theme_config 数组定义。
+// 解析失败或缺少 theme_config 键时返回 nil。
 func ParseConfig(src string, conf map[string]string) []Field {
-	loc := assignRe.FindStringSubmatchIndex(src)
-	if loc == nil {
+	dec := json.NewDecoder(bytes.NewReader([]byte(src)))
+	dec.UseNumber()
+	var doc map[string]json.RawMessage
+	if err := dec.Decode(&doc); err != nil {
 		return nil
 	}
-	// loc[2]:loc[3] 为数组起始位置（'[' 或 'array('）
-	toks, err := tokenize(src[loc[2]:])
-	if err != nil {
-		return nil
-	}
-	p := &parser{toks: toks}
-	v := p.parseValue()
-	arr, ok := v.(*phpArray)
+	raw, ok := doc["theme_config"]
 	if !ok {
 		return nil
 	}
-	fields := make([]Field, 0, len(arr.items))
-	for _, kv := range arr.items {
-		if sub, ok := kv.val.(*phpArray); ok {
-			fields = append(fields, arrayToField(sub, conf))
-		}
+	dec = json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	var arr []map[string]any
+	if err := dec.Decode(&arr); err != nil {
+		return nil
+	}
+	fields := make([]Field, 0, len(arr))
+	for _, item := range arr {
+		fields = append(fields, docToField(item, conf))
 	}
 	return fields
 }
 
-// assignRe 精确匹配 $theme_config = [...] 或 $theme_config = array(...)
-var assignRe = regexp.MustCompile(`\$theme_config\s*=\s*(\[|array\s*\()`)
-
-// ===== 词法分析 =====
-
-const (
-	tokStr = iota
-	tokNum
-	tokLBracket
-	tokRBracket
-	tokLParen
-	tokRParen
-	tokArrow
-	tokComma
-	tokExpr
-	tokIdent
-)
-
-type token struct {
-	kind int
-	text string
+// docToField 将 theme_config 数组的一个字段对象转换为 Field
+func docToField(m map[string]any, conf map[string]string) Field {
+	return Field{
+		Type:        jsonStr(m["type"]),
+		Name:        jsonStr(m["name"]),
+		Title:       jsonStr(m["title"]),
+		Description: jsonStr(m["description"]),
+		Verify:      jsonStr(m["verify"]),
+		Placeholder: jsonStr(m["placeholder"]),
+		Value:       jsonValue(m["value"], conf),
+		Enum:        jsonEnum(m["enum"]),
+	}
 }
 
-func isDigit(c byte) bool { return c >= '0' && c <= '9' }
-func isAlpha(c byte) bool {
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
-}
-
-func unescPhp(c byte) byte {
-	switch c {
-	case 'n':
-		return '\n'
-	case 'r':
-		return '\r'
-	case 't':
-		return '\t'
-	case '0':
-		return 0
-	case '\\', '\'', '"':
-		return c
+// jsonStr 字符串与数字统一转为字符串，其余类型返回空串
+func jsonStr(v any) string {
+	switch t := v.(type) {
+	case string:
+		return t
+	case json.Number:
+		return t.String()
 	default:
-		return c
+		return ""
 	}
 }
 
-func tokenize(s string) ([]token, error) {
-	var toks []token
-	i, n := 0, len(s)
-	for i < n {
-		c := s[i]
-		switch {
-		case c == ' ' || c == '\t' || c == '\r' || c == '\n':
-			i++
-		case c == '/' && i+1 < n && s[i+1] == '/':
-			for i < n && s[i] != '\n' {
-				i++
-			}
-		case c == '#':
-			for i < n && s[i] != '\n' {
-				i++
-			}
-		case c == '/' && i+1 < n && s[i+1] == '*':
-			i += 2
-			for i+1 < n && !(s[i] == '*' && s[i+1] == '/') {
-				i++
-			}
-			i += 2
-		case c == '\'' || c == '"':
-			quote := c
-			i++
-			var sb strings.Builder
-			for i < n {
-				if s[i] == '\\' && i+1 < n {
-					sb.WriteByte(unescPhp(s[i+1]))
-					i += 2
-					continue
-				}
-				if s[i] == quote {
-					i++
-					break
-				}
-				sb.WriteByte(s[i])
-				i++
-			}
-			toks = append(toks, token{tokStr, sb.String()})
-		case c == '[':
-			toks = append(toks, token{tokLBracket, "["})
-			i++
-		case c == ']':
-			toks = append(toks, token{tokRBracket, "]"})
-			i++
-		case c == '(':
-			toks = append(toks, token{tokLParen, "("})
-			i++
-		case c == ')':
-			toks = append(toks, token{tokRParen, ")"})
-			i++
-		case c == ',':
-			toks = append(toks, token{tokComma, ","})
-			i++
-		case c == '=' && i+1 < n && s[i+1] == '>':
-			toks = append(toks, token{tokArrow, "=>"})
-			i += 2
-		case c == '$':
-			start := i
-			depth := 0
-			for i < n {
-				ch := s[i]
-				if ch == '\'' {
-					i++
-					for i < n {
-						if s[i] == '\\' {
-							i += 2
-							continue
-						}
-						if s[i] == '\'' {
-							i++
-							break
-						}
-						i++
-					}
-					continue
-				}
-				if ch == '[' {
-					depth++
-					i++
-					continue
-				}
-				if ch == ']' {
-					if depth == 0 {
-						break
-					}
-					depth--
-					i++
-					continue
-				}
-				if depth == 0 && (ch == ',' || ch == ')') {
-					break
-				}
-				i++
-			}
-			toks = append(toks, token{tokExpr, strings.TrimSpace(s[start:i])})
-		default:
-			if isDigit(c) {
-				start := i
-				for i < n && (isDigit(s[i]) || s[i] == '.') {
-					i++
-				}
-				toks = append(toks, token{tokNum, s[start:i]})
-			} else if isAlpha(c) {
-				start := i
-				for i < n && (isAlpha(s[i]) || isDigit(s[i])) {
-					i++
-				}
-				toks = append(toks, token{tokIdent, s[start:i]})
-			} else {
-				i++
+// jsonValue 解析默认值：字符串、数字（转为字符串）、字符串数组（多选）、
+// 或对象 {"$conf":"站点配置键"}（解析期代入 conf 的值，键不存在得空串）
+func jsonValue(v any, conf map[string]string) any {
+	switch t := v.(type) {
+	case string:
+		return t
+	case json.Number:
+		return t.String()
+	case []any:
+		list := make([]string, 0, len(t))
+		for _, it := range t {
+			if s := jsonStr(it); s != "" {
+				list = append(list, s)
 			}
 		}
-	}
-	return toks, nil
-}
-
-// ===== 语法分析 =====
-
-type parser struct {
-	toks []token
-	pos  int
-}
-
-func (p *parser) peek() *token {
-	if p.pos < len(p.toks) {
-		return &p.toks[p.pos]
-	}
-	return nil
-}
-
-func (p *parser) next() *token {
-	t := p.peek()
-	if t != nil {
-		p.pos++
-	}
-	return t
-}
-
-func (p *parser) parseValue() any {
-	t := p.peek()
-	if t == nil {
-		return nil
-	}
-	switch t.kind {
-	case tokStr:
-		p.next()
-		return t.text
-	case tokNum:
-		p.next()
-		return t.text
-	case tokExpr:
-		p.next()
-		return phpExpr{raw: t.text}
-	case tokLBracket:
-		p.next()
-		return p.parseArray(tokRBracket)
-	case tokIdent:
-		if strings.EqualFold(t.text, "array") {
-			p.next()
-			if lp := p.peek(); lp != nil && lp.kind == tokLParen {
-				p.next()
-				return p.parseArray(tokRParen)
+		return list
+	case map[string]any:
+		if key, ok := t["$conf"].(string); ok {
+			if conf == nil {
+				return ""
 			}
+			return conf[key]
 		}
-		p.next()
-		return nil
+		return ""
 	default:
-		p.next()
-		return nil
+		return ""
 	}
 }
 
-func (p *parser) parseArray(endKind int) *phpArray {
-	arr := &phpArray{}
-	for {
-		t := p.peek()
-		if t == nil || t.kind == endKind {
-			p.next()
-			break
-		}
-		if t.kind == tokComma {
-			p.next()
-			continue
-		}
-		val := p.parseValue()
-		if nxt := p.peek(); nxt != nil && nxt.kind == tokArrow {
-			p.next() // =>
-			v2 := p.parseValue()
-			arr.items = append(arr.items, phpKV{key: val, val: v2})
-		} else {
-			arr.items = append(arr.items, phpKV{key: nil, val: val})
-		}
-	}
-	return arr
-}
-
-// ===== 转换为 Field =====
-
-func arrayToField(a *phpArray, conf map[string]string) Field {
-	f := Field{}
-	for _, kv := range a.items {
-		key, _ := kv.key.(string)
-		switch key {
-		case "type":
-			f.Type = toStr(kv.val, conf)
-		case "name":
-			f.Name = toStr(kv.val, conf)
-		case "title":
-			f.Title = toStr(kv.val, conf)
-		case "description":
-			f.Description = toStr(kv.val, conf)
-		case "verify":
-			f.Verify = toStr(kv.val, conf)
-		case "placeholder":
-			f.Placeholder = toStr(kv.val, conf)
-		case "value":
-			f.Value = toValue(kv.val, conf)
-		case "enum":
-			f.Enum = arrayToEnum(kv.val, conf)
-		}
-	}
-	return f
-}
-
-func arrayToEnum(v any, conf map[string]string) []EnumOption {
-	arr, ok := v.(*phpArray)
+// jsonEnum 解析枚举：二维字符串数组 [[value,label],...]，保持声明顺序
+func jsonEnum(v any) []EnumOption {
+	arr, ok := v.([]any)
 	if !ok {
 		return nil
 	}
 	var opts []EnumOption
-	for _, kv := range arr.items {
-		value := toStr(kv.key, conf)
-		label := toStr(kv.val, conf)
-		opts = append(opts, EnumOption{Value: value, Label: label})
-	}
-	return opts
-}
-
-func toValue(v any, conf map[string]string) any {
-	switch t := v.(type) {
-	case *phpArray:
-		var list []string
-		for _, kv := range t.items {
-			list = append(list, toStr(kv.val, conf))
-		}
-		return list
-	default:
-		return toStr(v, conf)
-	}
-}
-
-func toStr(v any, conf map[string]string) string {
-	switch t := v.(type) {
-	case nil:
-		return ""
-	case string:
-		return t
-	case int64:
-		return itoa(t)
-	case phpExpr:
-		return resolveExpr(t.raw, conf)
-	case *phpArray:
-		// 数组转字符串时取第一个元素
-		if len(t.items) > 0 {
-			return toStr(t.items[0].val, conf)
-		}
-		return ""
-	default:
-		return ""
-	}
-}
-
-func itoa(n int64) string {
-	if n == 0 {
-		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	var b [20]byte
-	i := len(b)
-	for n > 0 {
-		i--
-		b[i] = byte('0' + n%10)
-		n /= 10
-	}
-	if neg {
-		i--
-		b[i] = '-'
-	}
-	return string(b[i:])
-}
-
-// resolveExpr 解析 PHP 表达式，仅支持 $GLOBALS['conf']['xxx'] 形式
-func resolveExpr(raw string, conf map[string]string) string {
-	if !strings.Contains(raw, "$GLOBALS") {
-		return ""
-	}
-	parts := extractQuoted(raw)
-	for i := 0; i+1 < len(parts); i++ {
-		if parts[i] == "conf" {
-			if v, ok := conf[parts[i+1]]; ok {
-				return v
-			}
-			return ""
-		}
-	}
-	return ""
-}
-
-func extractQuoted(s string) []string {
-	var out []string
-	i, n := 0, len(s)
-	for i < n {
-		if s[i] == '\'' || s[i] == '"' {
-			quote := s[i]
-			i++
-			start := i
-			for i < n && s[i] != quote {
-				i++
-			}
-			out = append(out, s[start:i])
-			i++
+	for _, it := range arr {
+		pair, ok := it.([]any)
+		if !ok || len(pair) != 2 {
 			continue
 		}
-		i++
+		opts = append(opts, EnumOption{Value: jsonStr(pair[0]), Label: jsonStr(pair[1])})
 	}
-	return out
+	return opts
 }

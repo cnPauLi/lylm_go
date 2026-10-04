@@ -190,15 +190,17 @@ func TestThemeSaveConfigDefaults(t *testing.T) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatalf("创建临时主题目录失败: %v", err)
 	}
-	configPHP := `<?php
-$theme_config = [
-  ['type'=>'checkbox','name'=>'opts','title'=>'多选项','enum'=>['a'=>'选项A','b'=>'选项B']],
-  ['type'=>'switch','name'=>'enabled','title'=>'开关'],
-  ['type'=>'text','name'=>'title','title'=>'标题','value'=>'默认标题'],
-];
+	themeINI := `{
+  "theme_name": "default",
+  "theme_config": [
+    {"type": "checkbox", "name": "opts", "title": "多选项", "enum": [["a", "选项A"], ["b", "选项B"]]},
+    {"type": "switch", "name": "enabled", "title": "开关"},
+    {"type": "text", "name": "title", "title": "标题", "value": "默认标题"}
+  ]
+}
 `
-	if err := os.WriteFile(filepath.Join(dir, "config.php"), []byte(configPHP), 0o644); err != nil {
-		t.Fatalf("写入 config.php 失败: %v", err)
+	if err := os.WriteFile(filepath.Join(dir, "theme.ini"), []byte(themeINI), 0o644); err != nil {
+		t.Fatalf("写入 theme.ini 失败: %v", err)
 	}
 
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})

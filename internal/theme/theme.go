@@ -99,9 +99,9 @@ func (m *Manager) Info(name string) Info {
 	return info
 }
 
-// ConfigFields 解析主题 config.php 定义
+// ConfigFields 解析主题 theme.ini 中 theme_config 定义
 func (m *Manager) ConfigFields(name string, conf map[string]string) []Field {
-	path := filepath.Join(m.Dir(name), "config.php")
+	path := filepath.Join(m.Dir(name), "theme.ini")
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil
@@ -122,7 +122,7 @@ func ConfigMap(conf map[string]string, name string) map[string]any {
 	return m
 }
 
-// ConfigValue 获取主题配置值：数据库优先，其次 config.php 默认值，最后 def
+// ConfigValue 获取主题配置值：数据库优先，其次 theme.ini 默认值，最后 def
 func (m *Manager) ConfigValue(name, key, def string, conf map[string]string) string {
 	if db := ConfigMap(conf, name); db != nil {
 		if v, ok := db[key]; ok {

@@ -185,7 +185,7 @@ func (v *ViewData) ListJSON() gtmpl.JS {
 	return gtmpl.JS(data)
 }
 
-// ===== 主题辅助函数（等价各主题 functions.php 中的 theme_* 契约函数） =====
+// ===== 主题辅助函数（等价原版主题 theme_* 契约函数） =====
 
 var nonAlnumRe = regexp.MustCompile(`[^a-zA-Z0-9]`)
 
