@@ -3,6 +3,8 @@ package webutil
 import (
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 var mobileAgents = []string{
@@ -51,4 +53,46 @@ func RealIP(r *http.Request) string {
 		return "0.0.0.0"
 	}
 	return host
+}
+
+// rateEntry 单个限流键的计数与窗口重置时间
+type rateEntry struct {
+	count int
+	reset time.Time
+}
+
+var (
+	rateMu  sync.Mutex
+	rateMap = map[string]*rateEntry{}
+)
+
+// RateLimit 简单固定窗口限流：key 在 window 内最多允许 max 次请求。
+// 返回 true 表示放行，false 表示超限。key 不存在时创建新窗口。
+func RateLimit(key string, max int, window time.Duration) bool {
+	if max <= 0 || window <= 0 {
+		return true
+	}
+	now := time.Now()
+	rateMu.Lock()
+	defer rateMu.Unlock()
+
+	// 地图过大时顺带清理过期键，避免无限增长
+	if len(rateMap) > 10000 {
+		for k, e := range rateMap {
+			if now.After(e.reset) {
+				delete(rateMap, k)
+			}
+		}
+	}
+
+	e, ok := rateMap[key]
+	if !ok || now.After(e.reset) {
+		rateMap[key] = &rateEntry{count: 1, reset: now.Add(window)}
+		return true
+	}
+	if e.count >= max {
+		return false
+	}
+	e.count++
+	return true
 }

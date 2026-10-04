@@ -20,13 +20,13 @@
   - [x] SubTask 1.5: 转换 default 主题（`index.html`/`list.html`/`footer.html`）
   - [x] SubTask 1.6: 主题配置解析单元测试
 
-- [ ] Task 2: 会话/安全基础能力
-  - [ ] SubTask 2.1: 引入 `gin-contrib/sessions`，注册会话中间件
-  - [ ] SubTask 2.2: 会话与 CSRF 助手（解锁组列表、登录态、CSRF 生成/校验、验证码存取）
-  - [ ] SubTask 2.3: 图形验证码生成（4 位数字 PNG，自绘点阵字体）
-  - [ ] SubTask 2.4: SSRF 安全 HTTP 客户端与 `GetHead()`（标题/图标/描述/关键词，带缓存）
-  - [ ] SubTask 2.5: 图片上传/远程抓取接口 `/include/file.php`（类型/大小/限流）
-  - [ ] SubTask 2.6: 访问密码解锁与注销 `/include/go.php`
+- [x] Task 2: 会话/安全基础能力
+  - [x] SubTask 2.1: 引入 `gin-contrib/sessions`，注册会话中间件
+  - [x] SubTask 2.2: 会话与 CSRF 助手（解锁组列表、登录态、CSRF 生成/校验、验证码存取）
+  - [x] SubTask 2.3: 图形验证码生成（4 位数字 PNG，自绘点阵字体）
+  - [x] SubTask 2.4: SSRF 安全 HTTP 客户端与 `GetHead()`（标题/图标/描述/关键词，带缓存）
+  - [x] SubTask 2.5: 图片上传/远程抓取接口 `/include/file.php`（类型/大小/限流）
+  - [x] SubTask 2.6: 访问密码解锁与注销 `/include/go.php`
 
 - [ ] Task 3: 固定功能页
   - [ ] SubTask 3.1: 详情页 `/site-{id}.html`（含 404 与在线采集回写）
