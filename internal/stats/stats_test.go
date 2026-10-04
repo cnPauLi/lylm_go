@@ -1,9 +1,15 @@
 package stats
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
+
+func init() { gin.SetMode(gin.TestMode) }
 
 func TestRecordAndSummary(t *testing.T) {
 	s := New(filepath.Join(t.TempDir(), "logs"), nil)
@@ -48,5 +54,35 @@ func TestRecordEmptyIPIgnored(t *testing.T) {
 	s.Record("")
 	if got := s.Summary(7).Today; got != 0 {
 		t.Fatalf("Today = %d, want 0", got)
+	}
+}
+
+func TestMiddlewareSkipsAPIAndMCP(t *testing.T) {
+	s := New(filepath.Join(t.TempDir(), "logs"), nil)
+	r := gin.New()
+	r.Use(s.Middleware("admin"))
+	r.GET("/api/v1/ping", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+	r.POST("/mcp", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+	r.GET("/home", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
+
+	// /api 与 /mcp 各访问一次，不应计数
+	for _, p := range []struct{ method, path string }{
+		{http.MethodGet, "/api/v1/ping"},
+		{http.MethodPost, "/mcp"},
+	} {
+		req := httptest.NewRequest(p.method, p.path, nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+	}
+	if got := s.Summary(7).Today; got != 0 {
+		t.Fatalf("PV = %d, want 0（/api 与 /mcp 应排除）", got)
+	}
+
+	// 普通路径仍计数
+	req := httptest.NewRequest(http.MethodGet, "/home", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	if got := s.Summary(7).Today; got != 1 {
+		t.Fatalf("PV = %d, want 1", got)
 	}
 }

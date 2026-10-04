@@ -12,11 +12,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"lylme_spage/internal/admin"
+	"lylme_spage/internal/api"
 	"lylme_spage/internal/captcha"
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/install"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/pages"
+	"lylme_spage/internal/service"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/stats"
 	"lylme_spage/internal/upload"
@@ -113,6 +115,9 @@ func Setup(h *Handler) *gin.Engine {
 	if h.Admin != nil {
 		h.Admin.Register(r)
 	}
+
+	// REST API（/api/v1）；MCP 服务（/mcp）在后续任务挂载；二者共用同一密钥服务
+	api.RegisterV1(r, service.NewAPIKeyService(h.Store))
 
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 page not found")

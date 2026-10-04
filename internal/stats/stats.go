@@ -86,7 +86,7 @@ func (s *Store) Record(ip string) {
 
 // Middleware 记录非后台页面请求的访问量（在处理器执行之后统计）。
 func (s *Store) Middleware(adminPath string) gin.HandlerFunc {
-	skipPrefixes := []string{"/assets", "/template", "/site/static", "/files", "/include"}
+	skipPrefixes := []string{"/assets", "/template", "/site/static", "/files", "/include", "/api", "/mcp"}
 	return func(c *gin.Context) {
 		c.Next()
 		if s == nil {
