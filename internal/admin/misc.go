@@ -6,9 +6,6 @@ import (
 	"fmt"
 	gtmpl "html/template"
 	"net/http"
-	"os"
-	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -566,7 +563,7 @@ func escHTML(s string) string { return gtmpl.HTMLEscapeString(s) }
 
 // ===================== 文件清理 cleanimg.php =====================
 
-// cleanImgFile 单个文件项
+// cleanImgFile 单个文件项（后台模板展示结构，由 service.CleanupFile 映射）
 type cleanImgFile struct {
 	Rel, Name, Dir, URL, Ext, SizeStr string
 	Size                              int64
@@ -588,123 +585,46 @@ type cleanImgPage struct {
 	Dirs                []cleanImgDir
 }
 
-// fmtSize 人类可读文件大小
-func fmtSize(b int64) string {
-	switch {
-	case b >= 1<<20:
-		return fmt.Sprintf("%.2f MB", float64(b)/float64(1<<20))
-	case b >= 1<<10:
-		return fmt.Sprintf("%.2f KB", float64(b)/float64(1<<10))
-	default:
-		return strconv.FormatInt(b, 10) + " B"
+// toCleanImgPage 将 service 扫描报告映射为 cleanimg.html 模板结构（字段逐一对应）
+func toCleanImgPage(r *service.CleanupReport) *cleanImgPage {
+	if r == nil {
+		return &cleanImgPage{}
 	}
+	page := &cleanImgPage{
+		Total: r.Total, Used: r.Used, Unused: r.Unused,
+		TotalSize: r.TotalSize, TotalSizeStr: r.TotalSizeStr,
+	}
+	for _, d := range r.Dirs {
+		dir := cleanImgDir{Name: d.Name, Unused: d.Unused}
+		for _, f := range d.Files {
+			dir.Files = append(dir.Files, cleanImgFile{
+				Rel: f.Rel, Name: f.Name, Dir: f.Dir, URL: f.URL,
+				Ext: f.Ext, Size: f.Size, SizeStr: f.SizeStr, IsImg: f.IsImg,
+			})
+		}
+		page.Dirs = append(page.Dirs, dir)
+	}
+	return page
 }
 
 // CleanImg 未使用文件清理
 func (h *Handler) CleanImg(c *gin.Context) {
 	if c.Request.Method == http.MethodPost && c.Query("action") == "delete" {
-		h.cleanImgDelete(c)
+		res := h.FileCleanupSvc.Delete(postStrings(c, "files"))
+		msg := "删除成功 " + strconv.Itoa(res.Deleted) + " 个文件"
+		if res.Failed > 0 {
+			msg += "，失败 " + strconv.Itoa(res.Failed) + " 个"
+		}
+		h.renderHTML(c, alert("完成", msg, "cleanimg.php"))
 		return
 	}
-	page, err := h.scanUnused()
+	report, err := h.FileCleanupSvc.Scan()
 	if err != nil {
 		h.Log.Errorf("扫描未使用文件失败: %v", err)
 	}
 	data := h.newData(c, "未使用文件清理", "cleanimg.php", "cleanimg")
-	data.Page = page
+	data.Page = toCleanImgPage(report)
 	h.render(c, "cleanimg.html", data)
-}
-
-var cleanRelRe = regexp.MustCompile(`^(download|upload)/[^/]+$`)
-var cleanDotRe = regexp.MustCompile(`(^|/)\.\.(/|$)`)
-
-func (h *Handler) cleanImgDelete(c *gin.Context) {
-	files := postStrings(c, "files")
-	base := h.Cfg.Path("files")
-	del, fail := 0, 0
-	for _, rel := range files {
-		rel = strings.ReplaceAll(strings.TrimSpace(rel), `\`, "/")
-		if !cleanRelRe.MatchString(rel) || cleanDotRe.MatchString(rel) {
-			fail++
-			continue
-		}
-		full := filepath.Join(base, filepath.FromSlash(rel))
-		if fi, err := os.Stat(full); err == nil && !fi.IsDir() {
-			if err := os.Remove(full); err == nil {
-				del++
-				continue
-			}
-		}
-		fail++
-	}
-	msg := "删除成功 " + strconv.Itoa(del) + " 个文件"
-	if fail > 0 {
-		msg += "，失败 " + strconv.Itoa(fail) + " 个"
-	}
-	h.renderHTML(c, alert("完成", msg, "cleanimg.php"))
-}
-
-func (h *Handler) scanUnused() (*cleanImgPage, error) {
-	var icons []string
-	if err := h.Store.DB().Model(&models.Group{}).Where("group_icon <> ''").Pluck("group_icon", &icons).Error; err != nil {
-		return nil, err
-	}
-	var linkIcons []string
-	if err := h.Store.DB().Model(&models.Link{}).Where("icon <> ''").Pluck("icon", &linkIcons).Error; err != nil {
-		return nil, err
-	}
-	icons = append(icons, linkIcons...)
-
-	page := &cleanImgPage{}
-	for _, d := range []string{"download", "upload"} {
-		dir := cleanImgDir{Name: d}
-		entries, err := os.ReadDir(h.Cfg.Path("files", d))
-		if err != nil {
-			page.Dirs = append(page.Dirs, dir)
-			continue
-		}
-		for _, e := range entries {
-			if e.IsDir() {
-				continue
-			}
-			info, err := e.Info()
-			if err != nil {
-				continue
-			}
-			page.Total++
-			name := e.Name()
-			ext := strings.ToLower(strings.TrimPrefix(filepath.Ext(name), "."))
-			used := false
-			for _, v := range icons {
-				if strings.Contains(strings.ToLower(v), strings.ToLower(name)) {
-					used = true
-					break
-				}
-			}
-			if used {
-				page.Used++
-				continue
-			}
-			page.Unused++
-			page.TotalSize += info.Size()
-			dir.Unused++
-			dir.Files = append(dir.Files, cleanImgFile{
-				Rel: d + "/" + name, Name: name, Dir: d, URL: "/files/" + d + "/" + name,
-				Ext: ext, Size: info.Size(), SizeStr: fmtSize(info.Size()), IsImg: isImageExt(ext),
-			})
-		}
-		page.Dirs = append(page.Dirs, dir)
-	}
-	page.TotalSizeStr = fmtSize(page.TotalSize)
-	return page, nil
-}
-
-func isImageExt(ext string) bool {
-	switch ext {
-	case "png", "jpg", "jpeg", "gif", "ico", "webp":
-		return true
-	}
-	return false
 }
 
 // ===================== 批量导入 batch_add.php =====================
@@ -775,11 +695,8 @@ func (h *Handler) UpdatePage(c *gin.Context) {
 func (h *Handler) WxPlusPage(c *gin.Context) {
 	if c.Request.Method == http.MethodPost && c.Query("set") == "save" {
 		userkey := c.PostForm("userkey")
-		if err := h.Store.Set("wxplus", userkey, ""); err != nil {
-			h.Log.Errorf("保存微信推送失败: %v", err)
-		}
-		if err := h.Store.Set("wxplustime", c.PostForm("wxplustime"), ""); err != nil {
-			h.Log.Errorf("保存微信推送时间失败: %v", err)
+		if err := h.ConfigSvc.UpdateWxPlus(userkey, c.PostForm("wxplustime")); err != nil {
+			h.Log.Errorf("保存微信推送配置失败: %v", err)
 		}
 		if strings.TrimSpace(userkey) == "" {
 			h.renderHTML(c, alert("提示", "微信推送已关闭", "./wxplus.php"))
@@ -804,17 +721,15 @@ type licensePage struct {
 // LicensePage 网站授权设置
 func (h *Handler) LicensePage(c *gin.Context) {
 	if c.Request.Method == http.MethodPost && c.Query("set") == "save" {
-		if err := h.Store.Set("c", c.PostForm("licensecode"), "程序授权码"); err != nil {
-			h.Log.Errorf("保存授权码失败: %v", err)
-		}
-		if err := h.Store.Set("hostmode", c.PostForm("hostmode"), "域名获取方式"); err != nil {
-			h.Log.Errorf("保存域名模式失败: %v", err)
+		if err := h.ConfigSvc.UpdateLicense(c.PostForm("licensecode"), c.PostForm("hostmode")); err != nil {
+			h.Log.Errorf("保存网站授权配置失败: %v", err)
 		}
 		h.renderHTML(c, alert("成功", "修改成功！", "./license.php"))
 		return
 	}
+	lic := h.ConfigSvc.License()
 	hostMode := 2
-	if h.Store.Get("hostmode", "2") == "1" {
+	if lic.HostMode == "1" {
 		hostMode = 1
 	}
 	data := h.newData(c, "网站授权设置", "license.php", "license")

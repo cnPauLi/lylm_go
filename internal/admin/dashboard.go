@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"lylme_spage/internal/models"
 )
 
 // indexPage 仪表盘模板数据
@@ -26,20 +24,14 @@ func (h *Handler) Dashboard(c *gin.Context) {
 		return
 	}
 
+	sum := h.DashboardSvc.Summary(AppVersion)
 	page := &indexPage{
-		AppVersion: AppVersion,
-		DBVersion:  h.Store.Get("version", ""),
-		Build:      h.Store.Get("build", ""),
-	}
-	db := h.Store.DB()
-	if err := db.Model(&models.Link{}).Count(&page.Links).Error; err != nil {
-		h.Log.Errorf("统计链接数失败: %v", err)
-	}
-	if err := db.Model(&models.Group{}).Count(&page.Groups).Error; err != nil {
-		h.Log.Errorf("统计分组数失败: %v", err)
-	}
-	if err := db.Model(&models.Apply{}).Where("apply_status = ?", 0).Count(&page.ApplyRows).Error; err != nil {
-		h.Log.Errorf("统计待审申请失败: %v", err)
+		Links:      sum.Links,
+		Groups:     sum.Groups,
+		ApplyRows:  sum.ApplyRows,
+		AppVersion: sum.AppVersion,
+		DBVersion:  sum.DBVersion,
+		Build:      sum.Build,
 	}
 
 	data := h.newData(c, "后台管理", "index.php", "home")
