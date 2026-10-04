@@ -369,7 +369,7 @@
 
 - **Priority**: high
 - **Depends On**: T11、T12、T13、T14、T15、T16
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/mcp` 包：

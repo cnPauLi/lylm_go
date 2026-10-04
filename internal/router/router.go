@@ -17,6 +17,7 @@ import (
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/install"
 	"lylme_spage/internal/logger"
+	"lylme_spage/internal/mcp"
 	"lylme_spage/internal/pages"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/stats"
@@ -116,8 +117,10 @@ func Setup(h *Handler) *gin.Engine {
 		h.Admin.Register(r)
 	}
 
-	// REST API（/api/v1）；MCP 服务（/mcp）在后续任务挂载；二者共用同一密钥体系
-	api.RegisterV1(r, api.NewDeps(h.Store, h.Cfg, h.AppVersion))
+	// REST API（/api/v1）与 MCP 服务（/mcp）共用同一 Deps 实例与同一密钥体系
+	d := api.NewDeps(h.Store, h.Cfg, h.AppVersion)
+	api.RegisterV1(r, d)
+	mcp.Mount(r, d)
 
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 page not found")
