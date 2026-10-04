@@ -2,6 +2,7 @@ package admin
 
 import (
 	"encoding/json"
+	"errors"
 	gtmpl "html/template"
 	"net/http"
 	"strconv"
@@ -9,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"lylme_spage/internal/fetch"
 	"lylme_spage/internal/models"
+	"lylme_spage/internal/service"
 )
 
 // jsonWrite 输出 JSON（不转义斜杠/Unicode，兼容原版）
@@ -62,9 +63,8 @@ func (h *Handler) LinkPage(c *gin.Context) {
 	case "add":
 		lp.Add = true
 	case "edit":
-		id := queryInt(c, "id")
-		var row models.Link
-		if err := h.Store.DB().Where("id = ?", id).First(&row).Error; err != nil {
+		row, err := h.LinkSvc.Get(queryInt(c, "id"))
+		if err != nil {
 			h.renderHTML(c, "该条记录不存在！")
 			return
 		}
@@ -78,27 +78,16 @@ func (h *Handler) LinkPage(c *gin.Context) {
 
 // TableLink table_link.php?page=<group_id> 片段
 func (h *Handler) TableLink(c *gin.Context) {
-	page := queryInt(c, "page")
-	if page <= 0 {
-		page = 1
+	gt := h.LinkSvc.GroupTable(queryInt(c, "page"))
+	td := &TableLinkData{
+		Page:       gt.Page,
+		Total:      gt.Total,
+		GroupCount: gt.GroupCount,
+		GPwd:       gt.GPwd,
+		GroupLists: gt.Groups,
+		Links:      gt.Links,
+		GroupNames: gt.GroupNames,
 	}
-	td := &TableLinkData{Page: page, GroupNames: map[int]string{}}
-	if err := h.Store.DB().Order("group_order ASC").Find(&td.GroupLists).Error; err != nil {
-		h.Log.Errorf("查询分组失败: %v", err)
-	}
-	for _, g := range td.GroupLists {
-		td.GroupNames[g.GroupID] = g.GroupName
-		if g.GroupID == page {
-			td.GPwd = g.GroupPwd
-		}
-	}
-	if err := h.Store.DB().Model(&models.Link{}).Count(&td.Total).Error; err != nil {
-		h.Log.Errorf("统计链接失败: %v", err)
-	}
-	if err := h.Store.DB().Where("group_id = ?", page).Order("link_order ASC").Find(&td.Links).Error; err != nil {
-		h.Log.Errorf("查询分组链接失败: %v", err)
-	}
-	td.GroupCount = int64(len(td.Links))
 
 	data := h.newData(c, "", "table_link.php", "link")
 	data.Page = td
@@ -187,9 +176,9 @@ func (h *Handler) AjaxLink(c *gin.Context) {
 	case "edit_sou":
 		h.ajaxEditSou(c)
 	case "set_group":
-		h.ajaxUpdateInts(c, "group_id", "group_id")
+		h.ajaxSetGroup(c)
 	case "pwd_link":
-		h.ajaxUpdateInts(c, "link_pwd", "pwd_id")
+		h.ajaxSetPwd(c)
 	case "on":
 		h.ajaxSetStatus(c, 1)
 	case "off":
@@ -267,80 +256,60 @@ func (h *Handler) ajaxEditTag(c *gin.Context) {
 	jsonWrite(c, gin.H{"code": 200, "msg": "修改导航菜单 " + name + " 成功！"})
 }
 
-func (h *Handler) ajaxAddLink(c *gin.Context) {
-	color := truncateRunes(strings.TrimSpace(c.PostForm("color")), 32)
-	name := truncateRunes(strings.TrimSpace(c.PostForm("name")), 255)
-	url := truncateRunes(strings.TrimSpace(c.PostForm("url")), 255)
-	icon := c.PostForm("icon")
-	groupID := postInt(c, "group_id")
-	desc := truncateRunes(c.PostForm("link_desc"), 255)
-	keywords := truncateRunes(c.PostForm("link_keywords"), 512)
-	if name == "" || url == "" {
-		jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
-		return
+// linkInputFromPost 从请求构建链接入参（原始值；规范化由 service 完成）
+func linkInputFromPost(c *gin.Context) service.LinkInput {
+	return service.LinkInput{
+		Color:    c.PostForm("color"),
+		Name:     c.PostForm("name"),
+		URL:      c.PostForm("url"),
+		Icon:     c.PostForm("icon"),
+		GroupID:  postInt(c, "group_id"),
+		Desc:     c.PostForm("link_desc"),
+		Keywords: c.PostForm("link_keywords"),
+		Pwd:      postInt(c, "link_pwd"),
 	}
-	// 链接查重：忽略末尾斜杠差异
-	base := strings.TrimRight(url, "/")
-	var exists models.Link
-	err := h.Store.DB().Where("url = ? OR url = ?", base, base+"/").First(&exists).Error
-	if err == nil {
-		jsonWrite(c, gin.H{
-			"code": 201, "msg": "链接已存在，跳过！ID=" + strconv.Itoa(exists.ID),
-			"data": gin.H{
-				"id": exists.ID, "name": name, "url": url, "color": color, "icon": icon,
-				"group_id": groupID, "link_desc": desc, "link_keywords": keywords,
-			},
-		})
-		return
-	}
+}
 
-	var total int64
-	_ = h.Store.DB().Model(&models.Link{}).Count(&total).Error
-	rec := models.Link{
-		Name: name, GroupID: groupID, URL: url, Icon: icon,
-		LinkDesc: desc, LinkKeywords: keywords, LinkOrder: int(total) + 1, LinkStatus: 1,
-	}
-	if color != "" {
-		rec.Name = `<font color="` + color + `">` + name + `</font>`
-	}
-	if err := h.Store.DB().Create(&rec).Error; err != nil {
+func (h *Handler) ajaxAddLink(c *gin.Context) {
+	res, err := h.LinkSvc.Create(linkInputFromPost(c))
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInput) {
+			jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+			return
+		}
 		h.Log.Errorf("添加链接失败: %v", err)
 		jsonWrite(c, gin.H{"code": 500, "msg": "添加链接失败！"})
 		return
 	}
-	jsonWrite(c, gin.H{"code": 200, "msg": "添加链接 " + name + " 成功！", "id": rec.ID})
+	if res.Duplicate {
+		sub := res.Submitted
+		jsonWrite(c, gin.H{
+			"code": 201, "msg": "链接已存在，跳过！ID=" + strconv.Itoa(res.Link.ID),
+			"data": gin.H{
+				"id": res.Link.ID, "name": sub.Name, "url": sub.URL, "color": sub.Color, "icon": sub.Icon,
+				"group_id": sub.GroupID, "link_desc": sub.Desc, "link_keywords": sub.Keywords,
+			},
+		})
+		return
+	}
+	jsonWrite(c, gin.H{"code": 200, "msg": "添加链接 " + res.Submitted.Name + " 成功！", "id": res.Link.ID})
 }
 
 func (h *Handler) ajaxEditLink(c *gin.Context) {
-	id := queryInt(c, "id")
-	var row models.Link
-	if err := h.Store.DB().Where("id = ?", id).First(&row).Error; err != nil {
-		jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
+	row, err := h.LinkSvc.Update(queryInt(c, "id"), linkInputFromPost(c))
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrLinkNotFound):
+			jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
+		case errors.Is(err, service.ErrInvalidInput):
+			jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+		default:
+			h.Log.Errorf("修改链接失败: %v", err)
+			jsonWrite(c, gin.H{"code": 500, "msg": "修改链接失败！"})
+		}
 		return
 	}
-	color := truncateRunes(strings.TrimSpace(c.PostForm("color")), 32)
-	name := truncateRunes(strings.TrimSpace(c.PostForm("name")), 255)
-	url := truncateRunes(strings.TrimSpace(c.PostForm("url")), 255)
-	if name == "" || url == "" {
-		jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
-		return
-	}
-	if color != "" {
-		name = `<font color="` + color + `">` + name + `</font>`
-	}
-	row.Name = name
-	row.LinkDesc = truncateRunes(c.PostForm("link_desc"), 255)
-	row.LinkKeywords = truncateRunes(c.PostForm("link_keywords"), 512)
-	row.URL = url
-	row.Icon = c.PostForm("icon")
-	row.GroupID = postInt(c, "group_id")
-	row.LinkPwd = postInt(c, "link_pwd")
-	if err := h.Store.DB().Save(&row).Error; err != nil {
-		h.Log.Errorf("修改链接失败: %v", err)
-		jsonWrite(c, gin.H{"code": 500, "msg": "修改链接失败！"})
-		return
-	}
-	jsonWrite(c, gin.H{"code": 200, "msg": "修改链接 " + truncateRunes(name, 20) + " 成功！"})
+	jsonWrite(c, gin.H{"code": 200, "msg": "修改链接 " + truncateRunes(row.Name, 20) + " 成功！"})
 }
 
 func (h *Handler) ajaxAddSou(c *gin.Context) {
@@ -394,16 +363,19 @@ func (h *Handler) ajaxEditSou(c *gin.Context) {
 	jsonWrite(c, gin.H{"code": 200, "msg": "修改搜索引擎 " + row.SouName + " 成功！"})
 }
 
-func (h *Handler) ajaxUpdateInts(c *gin.Context, column, field string) {
-	val := postInt(c, field)
+func (h *Handler) ajaxSetGroup(c *gin.Context) {
 	ids := postInts(c, "links")
-	if len(ids) == 0 {
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败0条"})
+	if err := h.LinkSvc.BatchMoveGroup(ids, postInt(c, "group_id")); err != nil {
+		h.reportBatchError(c, "批量移动分组", err, ids)
 		return
 	}
-	if err := h.Store.DB().Model(&models.Link{}).Where("id IN ?", ids).Update(column, val).Error; err != nil {
-		h.Log.Errorf("批量更新 %s 失败: %v", column, err)
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败" + strconv.Itoa(len(ids)) + "条"})
+	jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！"})
+}
+
+func (h *Handler) ajaxSetPwd(c *gin.Context) {
+	ids := postInts(c, "links")
+	if err := h.LinkSvc.BatchSetPwd(ids, postInt(c, "pwd_id")); err != nil {
+		h.reportBatchError(c, "批量设置加密", err, ids)
 		return
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！"})
@@ -415,13 +387,8 @@ func (h *Handler) ajaxSetStatus(c *gin.Context, status int) {
 	if status == 0 {
 		msg = "禁用成功！"
 	}
-	if len(ids) == 0 {
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败0条"})
-		return
-	}
-	if err := h.Store.DB().Model(&models.Link{}).Where("id IN ?", ids).Update("link_status", status).Error; err != nil {
-		h.Log.Errorf("批量更新状态失败: %v", err)
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败" + strconv.Itoa(len(ids)) + "条"})
+	if err := h.LinkSvc.BatchSetStatus(ids, status); err != nil {
+		h.reportBatchError(c, "批量更新状态", err, ids)
 		return
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": msg})
@@ -429,38 +396,35 @@ func (h *Handler) ajaxSetStatus(c *gin.Context, status int) {
 
 func (h *Handler) ajaxDelLinks(c *gin.Context) {
 	ids := postInts(c, "links")
-	if len(ids) == 0 {
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败0条"})
-		return
-	}
-	if err := h.Store.DB().Where("id IN ?", ids).Delete(&models.Link{}).Error; err != nil {
-		h.Log.Errorf("批量删除链接失败: %v", err)
-		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败" + strconv.Itoa(len(ids)) + "条"})
+	if err := h.LinkSvc.BatchDelete(ids); err != nil {
+		h.reportBatchError(c, "批量删除链接", err, ids)
 		return
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": "链接删除成功！"})
 }
 
+// reportBatchError 将 service 批量操作错误映射为原版输出：
+// 空 ids（ErrInvalidInput）→「错误，失败0条」；数据库错误 →「错误，失败N条」
+func (h *Handler) reportBatchError(c *gin.Context, action string, err error, ids []int) {
+	if errors.Is(err, service.ErrInvalidInput) {
+		jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败0条"})
+		return
+	}
+	h.Log.Errorf("%s失败: %v", action, err)
+	jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败" + strconv.Itoa(len(ids)) + "条"})
+}
+
 func (h *Handler) ajaxAllOrder(c *gin.Context) {
 	raw := postStrings(c, "link_array")
-	for i, s := range raw {
-		id, err := strconv.Atoi(strings.TrimSpace(s))
-		if err != nil {
-			continue
-		}
-		if err := h.Store.DB().Model(&models.Link{}).Where("id = ?", id).Update("link_order", i).Error; err != nil {
-			h.Log.Errorf("更新排序失败: %v", err)
-		}
+	if err := h.LinkSvc.Sort(raw); err != nil {
+		h.Log.Errorf("更新排序失败: %v", err)
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！", "order": strings.Join(raw, ",")})
 }
 
 func (h *Handler) ajaxGetURL(c *gin.Context) {
-	rawURL := c.Query("url")
-	head := fetch.GetHead(rawURL, h.Cfg.Path("cache"), true)
-	title, _ := head["title"].(string)
-	icon, _ := head["icon"].(string)
-	if title == "" && icon == "" {
+	head, err := h.LinkSvc.FetchHead(c.Query("url"))
+	if err != nil {
 		jsonWrite(c, gin.H{"code": 400, "msg": "Unable to access"})
 		return
 	}
@@ -473,8 +437,8 @@ func (h *Handler) ajaxGetURL(c *gin.Context) {
 }
 
 func (h *Handler) ajaxAllLinks(c *gin.Context) {
-	var links []models.Link
-	if err := h.Store.DB().Order("id ASC").Find(&links).Error; err != nil {
+	links, err := h.LinkSvc.All()
+	if err != nil {
 		h.Log.Errorf("查询全站链接失败: %v", err)
 	}
 	out := make([]gin.H, 0, len(links))
@@ -495,8 +459,8 @@ type editFormPage struct {
 
 func (h *Handler) ajaxEditForm(c *gin.Context) {
 	id := queryInt(c, "id")
-	var row models.Link
-	if err := h.Store.DB().Where("id = ?", id).First(&row).Error; err != nil {
+	row, err := h.LinkSvc.Get(id)
+	if err != nil {
 		jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
 		return
 	}

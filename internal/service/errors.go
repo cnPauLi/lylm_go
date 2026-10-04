@@ -13,4 +13,10 @@ var (
 
 	// ErrGroupNameEmpty 分组名称为空；归属于 ErrInvalidInput
 	ErrGroupNameEmpty = errors.Join(ErrInvalidInput, errors.New("group: 分组名称不能为空"))
+
+	// ErrLinkNotFound 链接不存在
+	ErrLinkNotFound = errors.New("link: 链接不存在")
+
+	// ErrLinkHeadUnreachable 目标站点无法访问（抓取 head 时 title/icon 均为空）
+	ErrLinkHeadUnreachable = errors.New("link: 无法访问目标站点")
 )
