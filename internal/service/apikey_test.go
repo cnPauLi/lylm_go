@@ -78,7 +78,13 @@ func TestValidateBeforeAndAfterSet(t *testing.T) {
 	if !svc.Validate(key) {
 		t.Fatal("正确密钥 Validate 应为 true")
 	}
-	for _, bad := range []string{"", "sk-x", key[:len(key)-1] + "0", "Bearer " + key} {
+	// 构造末位必然不同的近似 key（直接拼 "0" 在 key 末位恰为 0 时会与真 key 相同）
+	last := byte('0')
+	if key[len(key)-1] == '0' {
+		last = '1'
+	}
+	mutated := key[:len(key)-1] + string(last)
+	for _, bad := range []string{"", "sk-x", mutated, "Bearer " + key} {
 		if svc.Validate(bad) {
 			t.Fatalf("错误密钥不应通过: %q", bad)
 		}

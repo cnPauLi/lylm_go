@@ -16,6 +16,7 @@ import (
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/models"
+	"lylme_spage/internal/service"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/stats"
 	"lylme_spage/internal/webutil"
@@ -39,11 +40,12 @@ type failState struct {
 
 // Handler 后台处理器集合
 type Handler struct {
-	Cfg    *config.Config
-	Store  *site.Store
-	Log    *logger.Logger
-	Engine *Engine
-	Stats  *stats.Store
+	Cfg      *config.Config
+	Store    *site.Store
+	Log      *logger.Logger
+	Engine   *Engine
+	Stats    *stats.Store
+	GroupSvc *service.GroupService
 
 	mu    sync.Mutex
 	fails map[string]*failState
@@ -55,7 +57,14 @@ func New(cfg *config.Config, store *site.Store, log *logger.Logger) (*Handler, e
 	if err != nil {
 		return nil, err
 	}
-	return &Handler{Cfg: cfg, Store: store, Log: log, Engine: engine, fails: map[string]*failState{}}, nil
+	return &Handler{
+		Cfg:      cfg,
+		Store:    store,
+		Log:      log,
+		Engine:   engine,
+		GroupSvc: service.NewGroupService(store),
+		fails:    map[string]*failState{},
+	}, nil
 }
 
 // AdminPath 返回实际生效的后台目录名（数据库配置优先，其次 .env）
