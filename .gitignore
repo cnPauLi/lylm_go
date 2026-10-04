@@ -1,0 +1,22 @@
+# 原版 PHP 参考项目（独立 git 仓库，不入本仓库）
+/lylme_spage/
+
+# 环境变量
+.env
+
+# 运行生成文件（sqlite、日志、缓存、上传文件）
+/data/
+/logs/
+/cache/
+/files/
+
+# 编译产物
+/bin/
+/lylme_spage_go
+*.exe
+*.test
+*.out
+
+# 系统文件
+.DS_Store
+Thumbs.db
