@@ -49,10 +49,10 @@
   - [x] SubTask 4.8: 图片清理、批量导入、更新检查、微信推送、授权页
   - [x] SubTask 4.9: 访问统计（tj 等价实现）与仪表盘图表数据
 
-- [ ] Task 5: 剩余主题与收尾验证
-  - [ ] SubTask 5.1: 其余主题（lylme/cyberwave/dashlite/quality6.0 等）模板转换为 Go 模板
-  - [ ] SubTask 5.2: `go build` / `go vet` / `go test` 全量通过，端到端页面自检
-  - [ ] SubTask 5.3: 更新 README 与部署说明（构建、打包、目录约定）
+- [x] Task 5: 剩余主题与收尾验证
+  - [x] SubTask 5.1: 其余主题（lylme/cyberwave/dashlite/quality6.0 等）模板转换为 Go 模板
+  - [x] SubTask 5.2: `go build` / `go vet` / `go test` 全量通过，端到端页面自检
+  - [x] SubTask 5.3: 更新 README 与部署说明（构建、打包、目录约定）
 
 - [x] Task 6: 安装向导（生成 .env）
   - [x] SubTask 6.1: 安装入口 `/install/` 与步骤页（Go 模板，沿用原版安装页面样式）

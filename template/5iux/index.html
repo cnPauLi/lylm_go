@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>{{ .Cfg "title" }}</title>
+    <meta name="keywords" content="{{ .Cfg "keywords" }}">
+    <meta name="description" content="{{ .Cfg "description" }}">
+    <link rel="icon" href="{{ .Cfg "logo" }}" type="image/x-icon">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="author" content="D.Young">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="full-screen" content="yes"><!--UC强制全屏-->
+    <meta name="browsermode" content="application"><!--UC应用模式-->
+    <meta name="x5-fullscreen" content="true"><!--QQ强制全屏-->
+    <meta name="x5-page-mode" content="app"><!--QQ应用模式-->
+    <meta name="lsvn" content="{{ b64 (.Cfg "version") }}">
+    <link href="{{ .TemplatePath }}/css/style.css?v=20240414" rel="stylesheet">
+</head>
+{{ if .BackgroundImg }}<body {{ .Style (printf "background: url(%s) no-repeat center/cover;" .BackgroundImg) }}>{{ else }}<body>{{ end }}
+<div class="body ">
+    <div id="menu"><i></i></div>
+    <div class="list closed">
+        {{ .Lists (dict "g1" `<ul class="mylist row">` "g2" `<li class="title">{group_icon}<sapn>{group_name}</sapn></li>` "g3" `</ul>` "l1" `<li class="col-3 col-sm-3 col-md-3 col-lg-1">` "l2" (printf `<a %s href="{link_url}" title="{link_name_text}"  target="_blank">{link_icon}<span>{link_name}</span></a>` .Rel) "l3" `</li>`) }}
+    </div>
+    <div id="content">
+        <div class="con">
+
+            <div class="shlogo">
+                
+                {{ raw (.ThemeCfg "home_title" "") }}{{ if eq (.Cfg "yan") "true" }}<p class="yan">{{ .Yan }}</p>{{ end }}
+            </div>
+            <div class="sou">
+                <div class="lylme">
+                    {{ range .Sou }}<div class="ss hide"><div class="lg">{{ raw .Icon }}</div>
+        </div>
+        {{ end }}
+
+                    <input class="wd soinput" id="search-text" type="text" placeholder="" name="q" x-webkit-speech lang="zh-CN" autocomplete="off">
+                    <button onclick="go('');"><svg class="icon" style=" width: 21px; height: 21px; opacity: 0.5;" aria-hidden="true">
+                            <use xlink:href="#lyicon-sousuo"></use>
+                        </svg></button>
+
+                    <div id="word"></div>
+                </div>
+
+            </div>
+
+            <div class="htmlcode">
+         {{ if eq (.ThemeCfg "lytoday" "0") "1" }}{{ raw (.ThemeCfg "lytodaycode" "") }}{{ end }}
+            
+            </div>
+        </div>
+        <footer>
+            <div class="foot">
+
+
+                {{ range $i, $t := .Tags }}{{ if $i }} | {{ end }}<a class="nav-link" href="{{ $t.TagLink }}"{{ if eq $t.TagTarget 1 }} target="_blank"{{ end }}>{{ $t.TagName }}</a>{{ end }}
+                <!--备案信息-->
+                <p>
+                    {{ if .Cfg "icp" }}<a href="http://beian.miit.gov.cn/"  class="icp nav-link" target="_blank" _mstmutation="1" _istranslated="1">{{ .Cfg "icp" }}</a>{{ end }}
+    {{ $gab := .ThemeCfg "gonganbei" "" }}{{ if $gab }}<a class="icp" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={{ digits $gab }}" target="_blank" rel="nofollow noopener"><img src="/assets/img/icp.png" alt="公安网备" width="16" height="16">{{ $gab }} </a>{{ end }}
+                </p>
+                <!--版权信息-->
+                <p>{{ raw (.Cfg "copyright") }}</p>
+                <!--自定义footer-->
+                {{ if .Cfg "wztj" }}{{ raw (.Cfg "wztj") }}{{ end }}
+
+            </div>
+        </footer>
+    </div>
+</div>
+
+</body>
+<script src="{{ .Cdn }}/assets/js/jquery.min.js"></script>
+<script src="{{ .Cdn }}/assets/js/icon.js"></script>
+<script src="{{ .TemplatePath }}/js/sou.js?v=20240414"></script>
+<script>
+    function solist() {
+        return {{ .SouJSON }};
+    }
+</script>
+<!--
+作者:D.Young
+主页：https://blog.5iux.cn/
+github：https://github.com/5iux/sou
+日期：2020-11-23
+版权所有，请勿删除
+-->
+
+</html>

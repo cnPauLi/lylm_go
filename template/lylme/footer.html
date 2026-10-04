@@ -1,0 +1,20 @@
+<script src="{{ .Cdn }}/template/lylme/js/script.js?v=20240409"></script>
+<script src="{{ .Cdn }}/assets/js/icon.js"></script>
+<div style="display:none;" class="back-to" id="toolBackTop"> 
+<a title="返回顶部" onclick="window.scrollTo(0,0);return false;" href="#top" class="back-top"></a> 
+</div> 
+<div class="mt-5 mb-3 footer text-muted text-center"> 
+  <!--备案信息-->
+  {{ if .Cfg "icp" }}<a href="http://beian.miit.gov.cn/" class="icp" target="_blank" _mstmutation="1" _istranslated="1">{{ .Cfg "icp" }}</a>{{ end }} 
+    {{ $gab := .ThemeCfg "gonganbei" "" }}{{ if $gab }}<a class="icp" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={{ digits $gab }}" target="_blank" rel="nofollow noopener">
+    <img src="/assets/img/icp.png" alt="公安网备" width="16" height="16">{{ $gab }} </a>{{ end }}
+  <!--版权信息-->
+  <p> {{ raw (.Cfg "copyright") }}</p>
+  <!--网站统计-->
+ {{ if .Cfg "wztj" }}{{ raw (.Cfg "wztj") }}{{ end }}
+  </div>  
+    <script>
+
+		</script>
+ </body>
+</html>

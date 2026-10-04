@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .Cfg "title" }}</title>
+    <meta name="keywords" content="{{ .Cfg "keywords" }}">
+    <meta name="description" content="{{ .Cfg "description" }}">
+    <link rel="icon" href="{{ .Cfg "logo" }}">
+    {{ .CSS "css/style.css" }}
+    <style>
+        :root{
+            --cy-cyan: {{ .ThemeCfg "color" "#2f6fed" }};
+            --cy-magenta: {{ .ThemeCfg "accent" "#ff2e97" }};
+            --cy-cols: {{ .ThemeCfg "link_cols" "4" }};
+        }
+    </style>
+    {{ .JS "js/script.js" }}
+</head>
+<body class="{{ if .IsMobile }}is-mobile{{ else }}is-pc{{ end }} {{ $glow := .EnumPick (.ThemeCfg "glow" "mid") "low,mid,high" "mid" }}cw-glow-{{ $glow }} {{ if eq (.ThemeCfg "scanline" "on") "off" }}cw-scan-off{{ else }}cw-scan-on{{ end }}">
+
+    {{ if .BackgroundImg }}
+    <div class="cw-bg" {{ .Style (printf "background-image:url('%s');" .BackgroundImg) }} aria-hidden="true"></div>
+    {{ end }}
+    <div class="cw-grid" aria-hidden="true"></div>
+    <div class="cw-scan" aria-hidden="true"></div>
+
+    <div class="cw-shell">
+
+        <aside class="cw-rail">
+            <div class="cw-brand">
+                <span class="cw-brand-mark" aria-hidden="true">&#9672;</span>
+                <span class="cw-brand-name" data-text="{{ .Cfg "title" }}">{{ .Cfg "title" }}</span>
+                <span class="cw-brand-sub">// NAVIGATION GRID</span>
+            </div>
+
+            {{ if .Tags }}
+            <nav class="cw-rail-nav" aria-label="分类导航">
+                {{ range .Tags }}<a class="cw-rail-link" href="{{ .TagLink }}"{{ if eq .TagTarget 1 }} target="_blank" rel="nofollow noopener"{{ end }}>
+                    <span class="cw-rail-tick" aria-hidden="true">&#9656;</span>
+                    <span class="cw-rail-text">{{ .TagName }}</span>
+                </a>
+                {{ end }}
+            </nav>
+            {{ end }}
+
+            <div class="cw-console">
+                {{ if .HasModule "clock" }}
+                <div class="cw-time" id="cw-time">--:--:--</div>
+                <div class="cw-date" id="cw-date">----/--/--</div>
+                {{ end }}
+
+                {{ if eq (.Cfg "yan") "true" }}
+                <p class="cw-yan">&gt; {{ .Yan }}</p>
+                {{ end }}
+
+                {{ $notice := trim (.ThemeCfg "notice" "") }}{{ if $notice }}
+                <div class="cw-notice">{{ raw $notice }}</div>
+                {{ end }}
+            </div>
+        </aside>
+
+        <div class="cw-stage">
+            <section class="cw-hero">
+                <h1 class="cw-hero-title" data-text="SYSTEM ONLINE">SYSTEM ONLINE</h1>
+                <form id="search-form" class="cw-finder" action="#">
+                    <span class="cw-finder-prompt" aria-hidden="true">root@grid:~$</span>
+                    <input type="text" id="search-input" class="cw-finder-input" placeholder="请输入搜索内容" autocomplete="off">
+                    <button type="submit" class="cw-finder-go">搜索</button>
+                </form>
+                {{ if .Sou }}
+                <div class="cw-engines" role="radiogroup" aria-label="搜索引擎">
+                    {{ range $index, $sou := .Sou }}<label class="cw-engine" style="--cy-edge: {{ $sou.Color }};">
+                        <input type="radio" name="sou" value="{{ $sou.Link }}"
+                               data-alias="{{ $sou.Alias }}" data-hint="{{ $sou.Hint }}"
+                               {{ if eq $index 0 }}checked{{ end }}>
+                        <span class="cw-engine-icon">{{ raw $sou.Icon }}
+</span>
+                        <span class="cw-engine-label">{{ $sou.Name }}</span>
+                    </label>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </section>
+
+            <main class="cw-board">
+                {{ .Lists (dict "g1" `<section class="cw-zone">` "g2" `<header class="cw-zone-head"><span class="cw-zone-ico">{group_icon}</span><h2 class="cw-zone-name">{group_name}</h2><span class="cw-zone-id">{group_id}</span></header>` "g3" `</section>` "l1" `<a class="cw-node" href="{link_url}" target="_blank" rel="nofollow noopener" title="{link_name_text}">` "l2" `<span class="cw-node-glyph">{link_icon}</span><span class="cw-node-body"><span class="cw-node-label">{link_name}</span><span class="cw-node-desc">{link_desc}</span></span>` "l3" `</a>`) }}
+            </main>
+        </div>
+
+    </div>
+
+    <footer class="cw-foot">
+        <span class="cw-foot-line">{{ raw (.Cfg "copyright") }}</span>
+        {{ .ICP }}
+        {{ .Gonganbei }}
+    </footer>
+
+    {{ raw (.Cfg "wztj") }}
+    <script src="{{ .Cdn }}/assets/js/icon.js"></script>
+    <script src="{{ .Cdn }}/assets/js/svg.js"></script>
+</body>
+</html>

@@ -67,6 +67,9 @@ func Setup(h *Handler) *gin.Engine {
 
 	r.GET("/healthz", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
 
+	// 主题点击统计占位接口（dashlite / quality6.0 等主题的 JS 会向此上报点击）
+	r.POST("/clitool", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"code": 200}) })
+
 	// 静态资源：assets / template / site/static / files（屏蔽 .php 源码）
 	// assets 下需放行 bing.php / cron.php 两个动态壁纸接口
 	r.GET("/assets/*filepath", h.assetsHandler())
@@ -167,6 +170,7 @@ func (h *Handler) baseData(c *gin.Context, tplName string) *view.ViewData {
 			link = s.SouWaplink
 		}
 		data.Sou = append(data.Sou, view.SouView{
+			ID:    s.SouID,
 			Alias: s.SouAlias,
 			Name:  s.SouName,
 			Hint:  s.SouHint,

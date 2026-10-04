@@ -1,0 +1,32 @@
+        <div class="footer-inner">
+            <div class="footer-text">
+
+             <!--备案信息-->
+    {{ $gab := .ThemeCfg "gonganbei" "" }}{{ if $gab }}<p><a class="gab" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={{ digits $gab }}" target="_blank" rel="nofollow noopener">
+    <img src="/assets/img/icp.png" alt="公安网备" width="16" height="16">{{ $gab }} </a></p>{{ end }}
+    {{ if .Cfg "icp" }}<p><a href="http://beian.miit.gov.cn/" class="icp" target="_blank" _mstmutation="1" _istranslated="1">{{ .Cfg "icp" }}</a></p>{{ end }}
+    <!--版权信息-->
+    <p> {{ raw (.Cfg "copyright") }}</p>
+    <!--网站统计-->
+    {{ if .Cfg "wztj" }}{{ raw (.Cfg "wztj") }}{{ end }}
+
+
+          </div>
+        </div>
+        <script>
+            var backgroundimg = "url({{ js .BackgroundImg }})";
+
+            var background_video = "{{ js (.ThemeCfg "background_video" "") }}";
+        </script>
+        <script src="{{ .Cdn }}/assets/js/jquery.min.js"></script>
+        <script src="{{ .TemplatePath }}/js/script.js"></script>
+        <script src="{{ .TemplatePath }}/js/tool.js"></script>
+        <script>
+            function solist() {
+                return {{ .SouJSON }};
+            }
+        </script>
+        </div>
+        </body>
+
+        </html>
