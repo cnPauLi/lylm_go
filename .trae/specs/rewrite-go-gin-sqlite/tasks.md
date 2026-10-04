@@ -54,13 +54,13 @@
   - [ ] SubTask 5.2: `go build` / `go vet` / `go test` 全量通过，端到端页面自检
   - [ ] SubTask 5.3: 更新 README 与部署说明（构建、打包、目录约定）
 
-- [ ] Task 6: 安装向导（生成 .env）
-  - [ ] SubTask 6.1: 安装入口 `/install/` 与步骤页（Go 模板，沿用原版安装页面样式）
-  - [ ] SubTask 6.2: 数据库配置表单 + 连接测试 + SQLite/MySQL 选择
-  - [ ] SubTask 6.3: 保存时生成项目根目录 `.env` 文件（含数据库/应用配置项）
-  - [ ] SubTask 6.4: 按新 `.env` 建表、导入种子数据、创建管理员账号
-  - [ ] SubTask 6.5: 生成 `install/install.lock`，重复安装拦截
-  - [ ] SubTask 6.6: 未安装时前台访问跳转 `/install/`（对齐原版行为）
+- [x] Task 6: 安装向导（生成 .env）
+  - [x] SubTask 6.1: 安装入口 `/install/` 与步骤页（Go 模板，沿用原版安装页面样式）
+  - [x] SubTask 6.2: 数据库配置表单 + 连接测试 + SQLite/MySQL 选择
+  - [x] SubTask 6.3: 保存时生成项目根目录 `.env` 文件（含数据库/应用配置项）
+  - [x] SubTask 6.4: 按新 `.env` 建表、导入种子数据、创建管理员账号
+  - [x] SubTask 6.5: 生成 `install/install.lock`，重复安装拦截
+  - [x] SubTask 6.6: 未安装时前台访问跳转 `/install/`（对齐原版行为）
 
 # Task Dependencies
 - Task 1 依赖 Task 0

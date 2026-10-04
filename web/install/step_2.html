@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>六零导航页安装向导 - 管理员信息</title>
+    <link href="templates/style/install.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="templates/js/jquery.min.js"></script>
+</head>
+<body>
+<form name="form" id="form" method="post" action="index.php">
+    <input type="hidden" name="step" id="step" value="3">
+    <input type="hidden" name="db_type" value="{{ .DBType }}">
+    <input type="hidden" name="sqlite_path" value="{{ .SQLitePath }}">
+    <input type="hidden" name="dbhost" value="{{ .DBHost }}">
+    <input type="hidden" name="dbport" value="{{ .DBPort }}">
+    <input type="hidden" name="dbname" value="{{ .DBName }}">
+    <input type="hidden" name="dbuser" value="{{ .DBUser }}">
+    <input type="hidden" name="dbpwd" value="{{ .DBPwd }}">
+    <div class="header"></div>
+    <div class="mainBody">
+        <div class="table">
+            <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td height="40" colspan="2" align="left"><span class="title">管理员信息</span></td>
+                </tr>
+                <tr>
+                    <td width="30%" height="40" align="right">管理员账号：</td>
+                    <td>
+                        <input type="text" name="admin_user" id="admin_user" class="input" value="{{ .AdminUser }}" autocomplete="off"/>
+                        <span class="cnote">后台登录账号, 默认为 admin</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td height="40" align="right">管理员密码：</td>
+                    <td>
+                        <input type="text" name="admin_pwd" id="admin_pwd" class="input" value="{{ .AdminPwd }}" autocomplete="off"/>
+                        <span class="cnote">后台登录密码, 至少6位字符</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td height="40" colspan="2" align="left">
+                        {{ if .Err }}<span class="col-red">{{ .Err }}</span>{{ end }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="footer"><span class="step3"></span> <span class="copyright">{{ .Copyright }}</span>
+        <span class="formSubBtn">
+            <a href="?step=1" class="back">返 回</a>
+            <a href="javascript:void(0);" onclick="CheckForm();return false;" class="submit">开始安装</a>
+        </span>
+    </div>
+</form>
+<script>
+    function CheckForm() {
+        if ($("#admin_user").val() == "") {
+            alert("请输入管理员账号！");
+            $("#admin_user").focus();
+            return false;
+        }
+        if ($("#admin_pwd").val() == "") {
+            alert("请输入管理员密码！");
+            $("#admin_pwd").focus();
+            return false;
+        }
+        if ($("#admin_pwd").val().length < 6) {
+            alert("管理员密码长度不得小于6位！");
+            $("#admin_pwd").focus();
+            return false;
+        }
+        document.form.submit();
+    }
+
+    $(function () {
+        $(".input").focus(function () {
+            $(this).attr("class", "inputOn");
+        }).blur(function () {
+            $(this).attr("class", "input");
+        });
+        $("#admin_user").focus();
+    });
+</script>
+</body>
+</html>

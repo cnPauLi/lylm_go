@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>六零导航页安装向导 - 配置数据文件</title>
+    <link href="templates/style/install.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="templates/js/jquery.min.js"></script>
+</head>
+<body>
+<form name="form" id="form" method="post" action="index.php">
+    <div class="header"></div>
+    <div class="mainBody">
+        <div class="table">
+            <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td height="40" colspan="2" align="left"><span class="title">选择数据库类型</span></td>
+                </tr>
+                <tr>
+                    <td width="30%" height="40" align="right">数据库类型：</td>
+                    <td>
+                        <label style="margin-right:20px;"><input type="radio" name="db_type" value="sqlite" {{ if ne .DBType "mysql" }}checked{{ end }}/> SQLite（推荐，无需额外配置）</label>
+                        <label><input type="radio" name="db_type" value="mysql" {{ if eq .DBType "mysql" }}checked{{ end }}/> MySQL</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td height="40" colspan="2" align="left"><span class="title">SQLite 配置</span></td>
+                </tr>
+                <tr class="row-sqlite">
+                    <td height="40" align="right">数据库文件：</td>
+                    <td>
+                        <input type="text" name="sqlite_path" id="sqlite_path" class="input" value="{{ .SQLitePath }}"/>
+                        <span class="cnote">相对项目根目录的 SQLite 文件路径，默认 data/lylme.db</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td height="40" colspan="2" align="left"><span class="title">MySQL 配置</span></td>
+                </tr>
+                <tr class="row-mysql">
+                    <td width="30%" height="40" align="right">数据库服务器：</td>
+                    <td><input type="text" name="dbhost" id="dbhost" class="input" value="{{ .DBHost }}"/>
+                        <span class="cnote">数据库服务器地址, 一般为 localhost</span></td>
+                </tr>
+                <tr class="row-mysql">
+                    <td width="30%" height="40" align="right">数据库端口号：</td>
+                    <td>
+                        <input type="text" name="dbport" id="dbport" class="input" value="{{ .DBPort }}"/>
+                        <span class="cnote">数据库端口号, 一般为 3306</span>
+                    </td>
+                </tr>
+                <tr class="row-mysql">
+                    <td height="40" align="right">数据库名称：</td>
+                    <td>
+                        <input type="text" name="dbname" id="dbname" class="input" value="{{ .DBName }}"/>
+                        <span class="cnote">数据库的名称，如果没有将尝试自动创建</span>
+                    </td>
+                </tr>
+                <tr class="row-mysql">
+                    <td height="40" align="right">数据库用户名：</td>
+                    <td><input type="text" name="dbuser" id="dbuser" class="input" value="{{ .DBUser }}"/></td>
+                </tr>
+                <tr class="row-mysql">
+                    <td height="40" align="right">数据库密码：</td>
+                    <td><input type="password" name="dbpwd" id="dbpwd" class="input" value="{{ .DBPwd }}"/></td>
+                </tr>
+                <tr>
+                    <td height="40" colspan="2" align="left">
+                        {{ if .Err }}<span class="col-red">{{ .Err }}</span>{{ end }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="footer"><span class="step2"></span> <span class="copyright">{{ .Copyright }}</span>
+        <span class="formSubBtn">
+            <a href="?step=0" class="back">返 回</a>
+            <a href="javascript:void(0);" onclick="CheckDBForm();return false;" class="submit">下一步</a>
+        </span>
+        <input type="hidden" name="step" id="step" value="2">
+    </div>
+</form>
+<script>
+    function toggleDB() {
+        if ($("input[name=db_type]:checked").val() === "mysql") {
+            $(".row-sqlite").hide();
+            $(".row-mysql").show();
+        } else {
+            $(".row-sqlite").show();
+            $(".row-mysql").hide();
+        }
+    }
+
+    function CheckDBForm() {
+        if ($("input[name=db_type]:checked").val() === "mysql") {
+            if ($("#dbhost").val() == "") {
+                alert("请输入数据库服务器！");
+                $("#dbhost").focus();
+                return false;
+            }
+            if ($("#dbname").val() == "") {
+                alert("请输入数据库名！");
+                $("#dbname").focus();
+                return false;
+            }
+            if (!/^[a-zA-Z0-9_]+$/.test($("#dbname").val())) {
+                alert("数据库名非法！请使用[a-zA-Z0-9_]内的字符！！");
+                $("#dbname").focus();
+                return false;
+            }
+            if ($("#dbuser").val() == "") {
+                alert("请输入数据库用户！");
+                $("#dbuser").focus();
+                return false;
+            }
+        } else {
+            if ($("#sqlite_path").val() == "") {
+                alert("请输入 SQLite 数据库文件路径！");
+                $("#sqlite_path").focus();
+                return false;
+            }
+        }
+        document.form.submit();
+    }
+
+    $(function () {
+        $("input[name=db_type]").change(toggleDB);
+        toggleDB();
+        $(".input").focus(function () {
+            $(this).attr("class", "inputOn");
+        }).blur(function () {
+            $(this).attr("class", "input");
+        });
+        $("#sqlite_path").focus();
+    });
+</script>
+</body>
+</html>

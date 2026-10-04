@@ -14,6 +14,7 @@ import (
 	"lylme_spage/internal/admin"
 	"lylme_spage/internal/captcha"
 	"lylme_spage/internal/config"
+	"lylme_spage/internal/install"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/pages"
 	"lylme_spage/internal/site"
@@ -38,6 +39,9 @@ func Setup(h *Handler) *gin.Engine {
 	gin.SetMode(h.Cfg.Mode)
 	r := gin.New()
 	r.Use(gin.Recovery(), h.requestLogger())
+
+	// 未安装时守卫：非 /install 等白名单请求 302 跳转到 /install/
+	r.Use(install.Guard(h.Cfg.RootDir))
 
 	// 会话中间件（Cookie 存储，签名密钥来自配置）
 	sessStore := cookie.NewStore([]byte(h.Cfg.SessionSecret))
