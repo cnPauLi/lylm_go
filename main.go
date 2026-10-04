@@ -9,12 +9,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
-
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/database"
 	"lylme_spage/internal/logger"
+	"lylme_spage/internal/router"
+	"lylme_spage/internal/site"
+	"lylme_spage/internal/view"
 )
+
+// AppVersion 程序版本号
+const AppVersion = "2.7.0"
 
 func main() {
 	cfg, err := config.Load()
@@ -34,25 +38,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	gin.SetMode(cfg.Mode)
-	r := gin.New()
-	r.Use(gin.Recovery(), requestLogger(log))
-
-	// 健康检查
-	r.GET("/healthz", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
-
-	// 静态资源（原版 assets/template 目录原样提供）
-	r.Static("/assets", cfg.Path("assets"))
-	r.Static("/template", cfg.Path("template"))
-
-	_ = db
-
-	srv := &http.Server{
-		Addr:    cfg.Addr(),
-		Handler: r,
+	store, err := site.NewStore(db, cfg.RootDir)
+	if err != nil {
+		log.Errorf("初始化数据层失败: %v", err)
+		os.Exit(1)
 	}
+
+	engine := view.NewEngine(store, AppVersion)
+
+	h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Log: log}
+	r := router.Setup(h)
+
+	srv := &http.Server{Addr: cfg.Addr(), Handler: r}
 
 	go func() {
 		log.Infof("服务已启动：http://%s", cfg.Addr())
@@ -71,14 +68,5 @@ func main() {
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Errorf("服务关闭异常: %v", err)
-	}
-}
-
-// requestLogger 简单请求日志中间件
-func requestLogger(log *logger.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		start := time.Now()
-		c.Next()
-		log.Infof("%s %s %d %s", c.Request.Method, c.Request.URL.Path, c.Writer.Status(), time.Since(start))
 	}
 }

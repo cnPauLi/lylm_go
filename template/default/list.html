@@ -1,0 +1,1 @@
+{{ .Lists (dict "g1" `<ul class="mylist row">` "g2" `<li id="group_{group_id}" class="title">{group_icon}<sapn>{group_name}</sapn></li>` "g3" `</ul>` "l1" `<li class="col-3 col-sm-3 col-md-3 col-lg-1">` "l2" (printf `<a %s href="{link_url}"  title="{link_name_text}"  target="_blank">{link_icon}<span>{link_name}</span></a>` .Rel) "l3" `</li>`) }}
