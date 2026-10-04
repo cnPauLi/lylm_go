@@ -38,15 +38,16 @@
   - [x] SubTask 3.7: Bing 壁纸 `/assets/img/bing.php` 与缓存 `/assets/img/cron.php`
   - [x] SubTask 3.8: 静态资源补齐（`/site/static/*`、`/apply/apply.js`）与路由接线
 
-- [ ] Task 4: 后台管理
-  - [ ] SubTask 4.1: 登录/登出与后台鉴权中间件（Cookie 签名、失败锁定、验证码）
-  - [ ] SubTask 4.2: 后台布局（head/footer 菜单高亮）与仪表盘
-  - [ ] SubTask 4.3: 网站设置 / 关于页设置 / 账号安全
-  - [ ] SubTask 4.4: 链接管理（列表片段、增删改、批量操作、排序、查重）
-  - [ ] SubTask 4.5: 分组管理、搜索引擎、导航菜单、加密组
-  - [ ] SubTask 4.6: 收录审核
-  - [ ] SubTask 4.7: 主题切换与主题自定义设置
-  - [ ] SubTask 4.8: 图片清理、批量导入、更新检查、微信推送、授权页
+- [x] Task 4: 后台管理
+  - [x] SubTask 4.1: 登录/登出与后台鉴权中间件（Cookie 签名、失败锁定、验证码）
+  - [x] SubTask 4.2: 后台布局（head/footer 菜单高亮）与仪表盘
+  - [x] SubTask 4.3: 网站设置 / 关于页设置 / 账号安全
+  - [x] SubTask 4.4: 链接管理（列表片段、增删改、批量操作、排序、查重）
+  - [x] SubTask 4.5: 分组管理、搜索引擎、导航菜单、加密组
+  - [x] SubTask 4.6: 收录审核
+  - [x] SubTask 4.7: 主题切换与主题自定义设置
+  - [x] SubTask 4.8: 图片清理、批量导入、更新检查、微信推送、授权页
+  - [x] SubTask 4.9: 访问统计（tj 等价实现）与仪表盘图表数据
 
 - [ ] Task 5: 剩余主题与收尾验证
   - [ ] SubTask 5.1: 其余主题（lylme/cyberwave/dashlite/quality6.0 等）模板转换为 Go 模板

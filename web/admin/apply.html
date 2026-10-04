@@ -1,0 +1,154 @@
+{{template "head.html" .}}
+<script src="../assets/js/svg.js"></script>
+<style>
+    td img,
+    td svg.icon {
+        width: 35px;
+        height: 35px;
+        max-width: 35px;
+    }
+
+    pre {
+        line-height: 1 !important;
+    }
+</style>
+<main class="lyear-layout-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+{{if eq .Page.Set "edit"}}
+{{if .Page.Edit}}
+    <h4>修改链接信息</h4>
+    <form action="./apply.php?set=edit_submit&id={{.Page.Edit.ApplyID}}" method="POST">
+        <div class="form-group">
+            <label for="apply_name">*名称:</label>
+            <input type="text" id="apply_name" class="form-control" name="apply_name" value="{{.Page.Edit.ApplyName}}" required>
+        </div>
+        <div class="form-group">
+            <label for="apply_url">*链接:</label>
+            <input type="text" id="apply_url" class="form-control" name="apply_url" value="{{.Page.Edit.ApplyURL}}" required>
+        </div>
+        <div class="form-group">
+            <label for="apply_icon">图标:</label>
+            <textarea id="apply_icon" class="form-control" name="apply_icon" rows="3">{{.Page.Edit.ApplyIcon}}</textarea>
+            <small class="help-block">方式1：填写图标的<code>URL</code>地址<br>方式2：粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a><br>方式3：留空使用默认图标</small>
+        </div>
+        <div class="form-group">
+            <label for="apply_group">*分组:</label>
+            <select id="apply_group" class="form-control" name="apply_group">
+{{range .Page.Groups}}
+                <option value="{{.GroupID}}"{{if eq .GroupID $.Page.Edit.ApplyGroup}} selected="selected"{{end}}>{{.GroupID}} - {{.GroupName}}</option>
+{{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="确定修改">
+        </div>
+    </form>
+    <br/><a href="./apply.php">&lt;&lt;返回收录管理列表</a>
+{{end}}
+{{else if eq .Page.Set "conf"}}
+    <h4>修改收录设置</h4>
+    <form action="./apply.php?set=conf_submit" method="POST">
+        <div class="form-group">
+            <label for="apply_status">申请收录</label>
+            <select class="form-control" id="apply_status" name="apply">
+                <option value="0"{{if eq (.Cfg "apply") "0"}} selected="selected"{{end}}>开启-需要审核</option>
+                <option value="1"{{if eq (.Cfg "apply") "1"}} selected="selected"{{end}}>开启-无需审核</option>
+                <option value="2"{{if eq (.Cfg "apply") "2"}} selected="selected"{{end}}>关闭-关闭申请</option>
+            </select>
+            <small class="help-block">申请收录开关，地址：<code>{{.SiteHost}}/apply</code><br>前往<a href="{{.SiteHost}}/apply" target="_blank">申请收录</a>提交页</small>
+        </div>
+        <div class="form-group">
+            <label for="apply_gg">收录页公告</label>
+            <textarea rows="5" class="form-control" id="apply_gg" name="apply_gg" placeholder="显示在收录页的公告">{{.Cfg "apply_gg"}}</textarea>
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="保存">
+        </div>
+    </form>
+    <br/><a href="./apply.php">&lt;&lt;返回收录管理列表</a>
+{{else}}
+                    <div class="alert alert-info">
+                        <div class="alert-stat">
+                            <div><i class="mdi mdi-bell-ring-outline mdi-alert-icon"></i>收录申请统计： <b>{{.Page.ApplyRows}}</b> 次&nbsp;|&nbsp;收录申请开关： <b>{{if eq (.Cfg "apply") "1"}}开启-无需审核{{else if eq (.Cfg "apply") "2"}}关闭-关闭申请{{else}}开启-需要审核{{end}}</b></div>
+                            <a href="./apply.php?set=conf" class="btn btn-primary btn-sm">修改设置</a>
+                        </div>
+                        <div class="mt-2">申请收录地址：<code>{{.Page.SiteHost}}/apply</code> <a href="{{.Page.SiteHost}}/apply" target="_blank">访问</a></div>
+                        <span class="alert-help">已审核的图标会被隐藏，点击图标可重新加载<br>部分网站图标一直处于加载或无法显示，可能原因：无法访问或跨域问题，建议建将图标本地化</span>
+                    </div>
+                            <div id="toolbar" class="toolbar-btn-action mb-2">
+                                <button id="btn_edit" type="button" class="btn btn-success btn-label" onclick="checked_status(1)">
+                                    <label><i class="mdi mdi-check" aria-hidden="true"></i></label>通过</button>
+                                <button id="btn_edit" type="button" class="btn btn-warning  btn-label" onclick="checked_status(2)">
+                                    <label><i class="mdi mdi-block-helper" aria-hidden="true"></i></label>拒绝</button>
+                                <button id="btn_delete" type="button" class="btn btn-danger btn-label" onclick="checked_del()">
+                                    <label><i class="mdi mdi-window-close" aria-hidden="true"></i></label>删除</button>
+                            </div>
+                            <div class="table-responsive" id="applylist">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" class="checkbox-parent" id="check_all" onclick="check_all()"></th>
+                                            <th>序号</th>
+                                            <th>图标</th>
+                                            <th>名称</th>
+                                            <th>链接</th>
+                                            <th>访问</th>
+                                            <th>分组</th>
+                                            <th>审核</th>
+                                            <th>操作</th>
+                                            <th>申请时间</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+{{range $i, $row := .Page.Rows}}
+                                        <tr>
+                                            <td><input type="checkbox" name="link-check" value="{{$row.ApplyID}}"></td>
+                                            <td>{{if eq $row.ApplyStatus 0}}<font color="#48b0f7"><b>{{add $i 1}}</b></font>{{else}}<b>{{add $i 1}}</b>{{end}}</td>
+                                            <td>
+{{if eq $row.ApplyStatus 0}}
+{{if eq $row.ApplyIcon ""}}未提交图标
+{{else if hasPrefix $row.ApplyIcon "<svg"}}{{raw $row.ApplyIcon}}
+{{else}}<img class="lazy" src="https://cdn.lylme.com/admin/lyear/img/loading.gif" data-original="{{$row.ApplyIcon}}">
+{{end}}
+{{else}}<img class="lazys" title="获取" src="https://cdn.lylme.com/admin/lyear/img/get.png" data-original="{{$row.ApplyIcon}}">
+{{end}}
+                                            </td>
+                                            <td>{{$row.ApplyName}}</td>
+                                            <td>{{$row.ApplyURL}}</td>
+                                            <td><a class="btn btn-purple btn-xs" href="../include/go.php?url={{$row.ApplyURL}}" target="_blank">访问</a></td>
+                                            <td>{{if index $.Page.GroupMap $row.ApplyGroup}}{{index $.Page.GroupMap $row.ApplyGroup}}{{else}}{{$row.ApplyGroup}}{{end}}</td>
+                                            <td>
+{{if eq $row.ApplyStatus 2}}<font color="#f96868">已拒绝</font>
+{{else if eq $row.ApplyStatus 1}}<font color="#3c763d">已通过</font>
+{{else}}
+                                                <button class="btn btn-primary btn-xs" onclick="status({{$row.ApplyID}},1)">通过</button>&nbsp;
+                                                <button class="btn btn-warning btn-xs" onclick="status({{$row.ApplyID}},2)">拒绝</button>
+{{end}}
+                                            </td>
+                                            <td>
+{{if eq $row.ApplyStatus 0}}
+                                                <a href="./apply.php?set=edit&id={{$row.ApplyID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;
+{{end}}
+                                                <button class="btn btn-xs btn-danger" onclick="deletes({{$row.ApplyID}})">删除</button>
+                                            </td>
+                                            <td>{{timefmt $row.ApplyTime}}</td>
+                                        </tr>
+{{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+{{end}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{template "footer.html" .}}
+<script src="/assets/admin/js/jquery.lazyload.min.js" type="application/javascript"></script>
+<script src="/assets/admin/js/layer.min.js" type="application/javascript"></script>
+<script src="/assets/admin/js/apply.js?v=20260826"></script>

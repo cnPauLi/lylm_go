@@ -1,0 +1,30 @@
+<div class="alert alert-info alert-stat"><div><i class="mdi mdi-folder-multiple mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个分组</div><a href="./group.php?set=add" class="btn btn-primary btn-sm">新建分组</a></div>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead><tr><th>名称</th><th>排序</th><th>链接数</th><th>加密</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+{{range .Page.Groups}}
+<tr><td><input type="hidden" name="group_id" value="{{.GroupID}}">{{.GroupName}}</td><td>
+  <button class="btn btn-primary btn-xs sort-up">上移</button>&nbsp;<button class="btn btn-primary btn-xs sort-down">下移</button></td>
+  <td>{{index $.Page.LinkCount .GroupID}}</td>
+  <td>
+  {{if ne .GroupPwd 0}}
+    {{if eq (index $.Page.PwdMap .GroupPwd) ""}}
+    <font color="red">失效[请重新设置加密组]</font>
+    {{else}}
+    <font color="f96197">{{index $.Page.PwdMap .GroupPwd}}</font>
+    {{end}}
+  {{else}}
+    <font color="green">未加密</font>
+  {{end}}
+  </td><td>
+  {{if .GroupStatus}}
+    <button class="btn btn-pink btn-xs" onclick="off_group({{.GroupID}})">禁用</button>
+  {{else}}
+    <button class="btn btn-success btn-xs" onclick="on_group({{.GroupID}})">启用</button>
+  {{end}}
+  </td><td>&nbsp;<a href="./group.php?set=edit&id={{.GroupID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<button class="btn btn-xs btn-danger" onclick="del_group({{.GroupID}})">删除</button></td></tr>
+{{end}}
+          </tbody>
+        </table>
+      </div>

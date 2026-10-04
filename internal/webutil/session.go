@@ -16,7 +16,36 @@ const (
 	sessKeyPwd      = "pass"
 	sessKeyCSRF     = "csrf_token"
 	sessKeyCaptcha  = "authcode"
+	sessKeyAdmin    = "admin_sign"
 )
+
+// SetAdmin 将当前会话标记为后台已登录，sign 为 md5(admin_user+admin_pwd)
+func SetAdmin(c *gin.Context, sign string) bool {
+	s := sessions.Default(c)
+	s.Set(sessKeyAdmin, sign)
+	return s.Save() == nil
+}
+
+// IsAdmin 判断当前会话是否已登录后台（仅判断签名是否存在）
+func IsAdmin(c *gin.Context) bool {
+	s := sessions.Default(c)
+	v, _ := s.Get(sessKeyAdmin).(string)
+	return v != ""
+}
+
+// AdminSign 读取当前会话保存的后台登录签名
+func AdminSign(c *gin.Context) string {
+	s := sessions.Default(c)
+	v, _ := s.Get(sessKeyAdmin).(string)
+	return v
+}
+
+// ClearAdmin 清除后台登录状态
+func ClearAdmin(c *gin.Context) {
+	s := sessions.Default(c)
+	s.Delete(sessKeyAdmin)
+	_ = s.Save()
+}
 
 // UnlockedIDs 读取会话中已解锁的加密密码组 ID 列表
 func UnlockedIDs(c *gin.Context) []int {

@@ -1,0 +1,35 @@
+{{template "head.html" .}}
+<link rel="stylesheet" href="../assets/admin/css/theme_setting.css">
+<main class="lyear-layout-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>{{.Page.ThemeName}}主题 - 自定义设置</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="theme-config-form">
+                            {{if .Page.HasConfig}}
+                                {{.Page.FormHTML}}
+                            {{else}}
+                                <h3>当前主题未适配主题自定义设置</h3>
+                            {{end}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{template "footer.html" .}}
+<!--选色器-->
+<link rel="stylesheet" type="text/css" href="/assets/admin/css/coloris.min.css" />
+<script type="text/javascript" src="/assets/admin/js/coloris.min.js"></script>
+<script type="text/javascript">
+    Coloris({
+        el: '.coloris',
+        swatches: ['#000000', '#555555', '#666666', '#264653', '#2a9d8f', '#f4a261', '#e76f51', '#ff0000', '#d62828', '#023e8a', '#0077b6', '#0096c7']
+    });
+</script>
+<script src="/assets/admin/js/theme_setting.js"></script>

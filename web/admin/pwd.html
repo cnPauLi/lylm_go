@@ -1,0 +1,86 @@
+{{template "head.html" .}}
+<main class="lyear-layout-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+{{if eq .Page.Set "add"}}
+    <h4>新增加密组</h4>
+    <form action="./pwd.php?set=add_submit" method="POST">
+        <div class="form-group">
+            <label for="pwd_name">*加密组名称:</label>
+            <input type="text" id="pwd_name" class="form-control" name="pwd_name" value="" required>
+        </div>
+        <div class="form-group">
+            <label for="pwd_key">*加密组密码:</label>
+            <input type="text" id="pwd_key" class="form-control" name="pwd_key" value="" required>
+        </div>
+        <div class="form-group">
+            <label for="pwd_ps">加密组备注:</label>
+            <input type="text" id="pwd_ps" class="form-control" name="pwd_ps" value="">
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="添加">
+        </div>
+    </form>
+    <br/><a href="./pwd.php">&lt;&lt;返回加密组列表</a>
+{{else if eq .Page.Set "edit"}}
+    <h4>修改加密组信息</h4>
+    <form action="./pwd.php?set=edit_submit&id={{.Page.Edit.PwdID}}" method="POST">
+        <div class="form-group">
+            <label for="pwd_name">*加密组名称:</label>
+            <input type="text" id="pwd_name" class="form-control" name="pwd_name" value="{{.Page.Edit.PwdName}}" required>
+        </div>
+        <div class="form-group">
+            <label for="pwd_key">*加密组密码:</label>
+            <input type="text" id="pwd_key" class="form-control" name="pwd_key" value="{{.Page.Edit.PwdKey}}" required>
+        </div>
+        <div class="form-group">
+            <label for="pwd_ps">加密组备注:</label>
+            <input type="text" id="pwd_ps" class="form-control" name="pwd_ps" value="{{.Page.Edit.PwdPs}}">
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="修改">
+        </div>
+    </form>
+    <br/><a href="./pwd.php">&lt;&lt;返回加密组列表</a>
+{{else}}
+                    <div class="alert alert-info">
+                        <div class="alert-stat">
+                            <div><h4 class="mb-0"><i class="mdi mdi-lock-outline mdi-alert-icon"></i>链接加密</h4></div>
+                            <a href="./pwd.php?set=add" class="btn btn-primary btn-sm">新建加密</a>
+                        </div>
+                        <ul class="mb-0 mt-2">
+                            <li>加密后的链接地址在本页面显示为<font color="#f96197">粉色</font>，以便标识</li>
+                            <li>加密分组后该分组下的链接单独设置的加密将失效，删除分组的加密后即可恢复</li>
+                            <li><b>加密后链接只能使用密码登录后方可查看</b></li>
+                            <li>若多个加密组使用相同的密码，登录后会同时显示使用该密码的所有链接</li>
+                            <li>默认登录地址：<code>{{.SiteHost}}/pwd</code>(可自行修改目录名更改)</li>
+                        </ul>
+                    </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr><th>名称</th><th>密码</th><th>备注</th><th>操作</th></tr>
+                                    </thead>
+                                    <tbody>
+{{range .Page.Rows}}
+                                        <tr>
+                                            <td>{{.PwdName}}</td>
+                                            <td>{{.PwdKey}}</td>
+                                            <td>{{.PwdPs}}</td>
+                                            <td>&nbsp;<a href="./pwd.php?set=edit&id={{.PwdID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./pwd.php?set=delete&id={{.PwdID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'是否删除加密组 {{.PwdName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a> </td>
+                                        </tr>
+{{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{end}}
+{{template "footer.html" .}}

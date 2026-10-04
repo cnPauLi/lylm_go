@@ -1,0 +1,149 @@
+{{template "head.html" .}}
+<main class="lyear-layout-content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-body">
+{{if eq .Page.Set "add"}}
+    <h4>新增搜索接</h4>
+    <form id="addSearchForm" action="./ajax_link.php?submit=add_sou" method="POST">
+        <div class="form-group">
+            <label>*搜索引擎名称: (*必填)</label>
+            <input type="text" class="form-control" name="name" value="" required placeholder="如：百度一下">
+        </div>
+        <div class="form-group">
+            <label>*搜索引擎别名: (*必填)</label>
+            <input type="text" class="form-control" name="alias" value="" required placeholder="如：baidu">
+        </div>
+        <div class="form-group">
+            <label>*搜索框提示: (*必填)</label>
+            <input type="text" class="form-control" name="hint" value="" required placeholder="如：请输入搜索内容">
+        </div>
+        <div class="form-group">
+            <label>*搜索引擎地址: (*必填)</label>
+            <input type="text" class="form-control" name="link" value="" required placeholder="如：https://www.baidu.com/s?word=">
+            <small class="help-block">例：百度搜索 <code>https://www.baidu.com/s?word=</code>，<a href="https://doc.lylme.com/spage/#/search-help">查看获取接口教程</a></small>
+        </div>
+        <div class="form-group">
+            <label>搜索引擎手机端地址: (选填)</label>
+            <input type="text" class="form-control" name="waplink" value="" placeholder="一般情况下留空">
+            <small class="help-block">例：百度搜索的电脑端和手机端不会自适应，需要手动设置手机端，如<code>https://m.baidu.com/s?word=</code></small>
+        </div>
+        <div class="form-group">
+            <label>标题文字颜色: (*必填)</label>
+            <input type="text" class="form-control" name="color" value="#696a6d" required>
+        </div>
+        <div class="form-group">
+            <label>搜索引擎图标:(*必填)</label>
+            <textarea class="form-control" name="icon" placeholder="<svg" required></textarea>
+            <small class="help-block">方案1：粘贴图标的<code>SVG</code>代码(推荐) <a href="./help.php?doc=icon" target="_blank">查看教程</a><br>方案2：使用图片地址，需要img标签</small>
+        </div>
+        <div class="form-group">
+            <label class="d-block w-100">启用开关</label>
+            <label class="lyear-switch switch-solid switch-primary">
+                <input type="checkbox" checked="checked" name="st" value="true">
+                <span></span>
+            </label>
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="添加">
+        </div>
+    </form>
+    <br/><a href="./sou.php">&lt;&lt;返回</a>
+{{else if eq .Page.Set "edit"}}
+    <h4>修改搜索引擎</h4>
+    <form id="editSearchForm" action="./ajax_link.php?submit=edit_sou&id={{.Page.Edit.SouID}}" method="POST">
+        <div class="form-group">
+            <label>*搜索引擎名称: (*必填)</label>
+            <input type="text" class="form-control" name="name" value="{{.Page.Edit.SouName}}" required placeholder="如：百度一下">
+        </div>
+        <div class="form-group">
+            <label>*搜索引擎别名: (*必填)</label>
+            <input type="text" class="form-control" name="alias" value="{{.Page.Edit.SouAlias}}" required placeholder="如：baidu">
+        </div>
+        <div class="form-group">
+            <label>*搜索框提示: (*必填)</label>
+            <input type="text" class="form-control" name="hint" value="{{.Page.Edit.SouHint}}" required placeholder="如：请输入搜索内容">
+        </div>
+        <div class="form-group">
+            <label>*搜索引擎地址: (*必填)</label>
+            <input type="text" class="form-control" name="link" value="{{.Page.Edit.SouLink}}" required placeholder="如：https://www.baidu.com/s?word=">
+        </div>
+        <div class="form-group">
+            <label>搜索引擎手机端地址: (选填)</label>
+            <input type="text" class="form-control" name="waplink" value="{{.Page.Edit.SouWaplink}}" placeholder="一般情况下留空">
+        </div>
+        <div class="form-group">
+            <label>标题文字颜色: (*必填)</label>
+            <input type="text" class="form-control" name="color" value="{{.Page.Edit.SouColor}}" required>
+        </div>
+        <div class="form-group">
+            <label>搜索引擎图标:(*必填)</label>
+            <textarea class="form-control" name="icon" placeholder="<svg" required>{{.Page.Edit.SouIcon}}</textarea>
+        </div>
+        <div class="form-group">
+            <label>排序权重: (*必填)</label>
+            <input type="text" class="form-control" name="order" value="{{.Page.Edit.SouOrder}}" required>
+        </div>
+        <div class="form-group">
+            <label class="d-block w-100">启用开关</label>
+            <label class="lyear-switch switch-solid switch-primary">
+                <input type="checkbox"{{if eq .Page.Edit.SouSt 1}} checked="checked"{{end}} name="st" value="true">
+                <span></span>
+            </label>
+        </div>
+        <div class="form-group">
+            <input type="submit" class="btn btn-primary d-block w-100" value="修改">
+        </div>
+    </form>
+    <br/><a href="./sou.php">&lt;&lt;返回</a>
+{{else}}
+                    <div class="alert alert-info alert-stat"><div><i class="mdi mdi-magnify mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个搜索引擎</div><a href="./sou.php?set=add" class="btn btn-primary btn-sm">新增搜索引擎</a></div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead><tr><th>排序权重</th><th>名称</th><th>别名</th><th>地址</th><th>状态</th><th>操作</th></tr></thead>
+                            <tbody>
+                            {{range .Page.Rows}}
+                                <tr>
+                                    <td><b>{{.SouOrder}}</b></td>
+                                    <td><b><font color="{{.SouColor}}">{{.SouName}}</font></b></td>
+                                    <td>{{.SouAlias}}</td>
+                                    <td>{{.SouLink}}</td>
+                                    <td>{{if eq .SouSt 1}}<span class="label label-success">开启</span>{{else}}<span class="label label-danger">关闭</span>{{end}}</td>
+                                    <td><a href="./sou.php?set=edit&id={{.SouID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./sou.php?set=delete&id={{.SouID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定删除 {{.SouName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a></td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{end}}
+{{template "footer.html" .}}
+<script>
+    var searchForm = document.getElementById('addSearchForm') || document.getElementById('editSearchForm');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        var _d = resp.code == 200 ? 'success' : 'danger';
+                        lightyear.notify(resp.msg || xhr.responseText, _d, _d == 'success' ? 1000 : 3000);
+                    } catch(e) {
+                        lightyear.notify(xhr.responseText, 'info', 2000);
+                    }
+                }
+            };
+            xhr.send(formData);
+        });
+    }
+</script>

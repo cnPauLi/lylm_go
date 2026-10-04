@@ -11,11 +11,13 @@ import (
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 
+	"lylme_spage/internal/admin"
 	"lylme_spage/internal/captcha"
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/pages"
 	"lylme_spage/internal/site"
+	"lylme_spage/internal/stats"
 	"lylme_spage/internal/upload"
 	"lylme_spage/internal/view"
 	"lylme_spage/internal/webutil"
@@ -27,6 +29,7 @@ type Handler struct {
 	Store  *site.Store
 	Engine *view.Engine
 	Pages  *pages.Engine
+	Admin  *admin.Handler
 	Log    *logger.Logger
 }
 
@@ -45,6 +48,18 @@ func Setup(h *Handler) *gin.Engine {
 		SameSite: http.SameSiteLaxMode,
 	})
 	r.Use(sessions.Sessions("lylme_session", sessStore))
+
+	// 访问统计（非后台页面请求计数）
+	adminPath := h.Cfg.AdminPath
+	if h.Admin != nil {
+		adminPath = h.Admin.AdminPath()
+	}
+	statsStore := stats.New(h.Cfg.Path("logs"), h.Store.DB())
+	statsStore.SetLogger(h.Log)
+	r.Use(statsStore.Middleware(adminPath))
+	if h.Admin != nil {
+		h.Admin.Stats = statsStore
+	}
 
 	r.GET("/healthz", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
 
@@ -86,6 +101,11 @@ func Setup(h *Handler) *gin.Engine {
 
 	// 前台首页
 	r.GET("/", h.Home)
+
+	// 后台管理（路径由 ADMIN_PATH / admin_path 配置决定）
+	if h.Admin != nil {
+		h.Admin.Register(r)
+	}
 
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 page not found")

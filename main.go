@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"lylme_spage/internal/admin"
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/database"
 	"lylme_spage/internal/logger"
@@ -53,7 +54,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Pages: pageEngine, Log: log}
+	adminHandler, err := admin.New(cfg, store, log)
+	if err != nil {
+		log.Errorf("初始化后台模板失败: %v", err)
+		os.Exit(1)
+	}
+
+	h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Pages: pageEngine, Admin: adminHandler, Log: log}
 	r := router.Setup(h)
 
 	srv := &http.Server{Addr: cfg.Addr(), Handler: r}
