@@ -31,4 +31,7 @@ var (
 
 	// ErrApplyNotFound 收录申请不存在
 	ErrApplyNotFound = errors.New("apply: 收录申请不存在")
+
+	// ErrThemeNotFound 主题不存在
+	ErrThemeNotFound = errors.New("theme: 主题不存在")
 )

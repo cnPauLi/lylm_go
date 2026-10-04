@@ -52,6 +52,7 @@ type Handler struct {
 	PwdSvc    *service.PwdService
 	ConfigSvc *service.ConfigService
 	ApplySvc  *service.ApplyService
+	ThemeSvc  *service.ThemeService
 
 	mu    sync.Mutex
 	fails map[string]*failState
@@ -75,6 +76,7 @@ func New(cfg *config.Config, store *site.Store, log *logger.Logger) (*Handler, e
 		PwdSvc:    service.NewPwdService(store),
 		ConfigSvc: service.NewConfigService(store),
 		ApplySvc:  service.NewApplyService(store),
+		ThemeSvc:  service.NewThemeService(store),
 		fails:     map[string]*failState{},
 	}, nil
 }

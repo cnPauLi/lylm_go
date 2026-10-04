@@ -315,7 +315,7 @@ type themePage struct {
 // ThemePage 主题设置
 func (h *Handler) ThemePage(c *gin.Context) {
 	if set := c.Query("set"); set != "" {
-		if err := h.Store.Set("template", set, "网站主题"); err != nil {
+		if err := h.ThemeSvc.Switch(set); err != nil {
 			h.Log.Errorf("切换主题失败: %v", err)
 			h.renderHTML(c, alert("错误", "主题修改失败！", "./theme.php"))
 			return
@@ -323,8 +323,9 @@ func (h *Handler) ThemePage(c *gin.Context) {
 		h.renderHTML(c, alert("成功", "主题修改成功！", "./theme.php"))
 		return
 	}
+	themes, current := h.ThemeSvc.List()
 	data := h.newData(c, "主题设置", "theme.php", "theme")
-	data.Page = &themePage{Themes: h.Store.Theme().List(), Current: h.Store.Template()}
+	data.Page = &themePage{Themes: themes, Current: current}
 	h.render(c, "theme.html", data)
 }
 
@@ -337,8 +338,7 @@ type themeSettingPage struct {
 
 // ThemeSettingPage 主题自定义设置
 func (h *Handler) ThemeSettingPage(c *gin.Context) {
-	tpl := h.Store.Template()
-	fields := h.Store.Theme().ConfigFields(tpl, h.Store.Conf())
+	fields, tpl := h.ThemeSvc.ConfigFields()
 	tp := &themeSettingPage{ThemeName: h.Store.Theme().Info(tpl).Name}
 	if len(fields) == 0 {
 		data := h.newData(c, "主题自定义设置", "theme_setting.php", "theme")
@@ -347,8 +347,7 @@ func (h *Handler) ThemeSettingPage(c *gin.Context) {
 		return
 	}
 	tp.HasConfig = true
-	values := theme.ConfigMap(h.Store.Conf(), tpl)
-	tp.FormHTML = renderThemeForm(fields, values)
+	tp.FormHTML = renderThemeForm(fields, h.ThemeSvc.ConfigValues())
 	data := h.newData(c, "主题自定义设置", "theme_setting.php", "theme")
 	data.Page = tp
 	h.render(c, "theme_setting.html", data)
@@ -360,14 +359,8 @@ func (h *Handler) AjaxTheme(c *gin.Context) {
 		jsonWrite(c, gin.H{"code": -1, "msg": "非法请求！"})
 		return
 	}
-	tpl := strings.TrimSpace(c.PostForm("theme_path"))
-	if tpl == "" {
-		tpl = h.Store.Template()
-	}
-	if !h.Store.Theme().Exists(tpl) {
-		tpl = h.Store.Template()
-	}
 	_ = c.Request.ParseMultipartForm(32 << 20)
+	tpl := strings.TrimSpace(c.PostForm("theme_path"))
 	data := map[string]any{}
 	for key, vals := range c.Request.PostForm {
 		if key == "file" || key == "theme_path" || key == "csrf_token" {
@@ -380,38 +373,12 @@ func (h *Handler) AjaxTheme(c *gin.Context) {
 			data[key] = vals[0]
 		}
 	}
-	// 补回未提交的 checkbox / switch 默认值
-	for _, f := range h.Store.Theme().ConfigFields(tpl, h.Store.Conf()) {
-		switch f.Type {
-		case "checkbox":
-			if v, ok := data[f.Name]; !ok || isEmptyScalar(v) {
-				data[f.Name] = []string{}
-			}
-		case "switch":
-			if _, ok := data[f.Name]; !ok {
-				data[f.Name] = 0
-			}
-		}
-	}
-	raw, err := json.Marshal(data)
-	if err != nil {
-		jsonWrite(c, gin.H{"code": 0, "msg": "保存失败"})
-		return
-	}
-	name := h.Store.Theme().Info(tpl).Name
-	if err := h.Store.Set("theme_config_"+tpl, string(raw), name+"主题自定义设置"); err != nil {
+	if err := h.ThemeSvc.SaveConfig(tpl, data); err != nil {
 		h.Log.Errorf("保存主题设置失败: %v", err)
 		jsonWrite(c, gin.H{"code": 0, "msg": "保存失败"})
 		return
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": "保存成功"})
-}
-
-func isEmptyScalar(v any) bool {
-	if s, ok := v.(string); ok {
-		return s == ""
-	}
-	return false
 }
 
 // renderThemeForm 依据主题字段定义生成表单 HTML（等价原版 Form/BootstrapForm）
