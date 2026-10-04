@@ -4,6 +4,7 @@ import (
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/service"
 	"lylme_spage/internal/site"
+	"lylme_spage/internal/stats"
 )
 
 // Deps 汇总 REST 层所需的全部 service 依赖。处理器只依赖 service，
@@ -20,6 +21,7 @@ type Deps struct {
 	Theme     *service.ThemeService
 	Dashboard *service.DashboardService
 	Files     *service.FileCleanupService
+	Stats     *stats.Store
 
 	Cfg        *config.Config
 	AppVersion string

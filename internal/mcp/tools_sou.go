@@ -73,7 +73,7 @@ func (set *MCPSet) registerSouTools() {
 		mcp.WithString("link", mcp.Description("PC 端搜索链接模板（最长 255 字符）")),
 		mcp.WithString("waplink", mcp.Description("移动端搜索链接模板（最长 255 字符）")),
 		mcp.WithString("icon", mcp.Description("图标：URL 或 SVG 名称/内容（最长 2000 字符）")),
-		mcp.WithBoolean("st", mcp.Description("是否启用：true 启用，false 停用；不传默认启用")),
+		mcp.WithBoolean("st", mcp.Description("是否启用：true 启用，false 停用；不传默认 false（停用）")),
 		mcp.WithNumber("order", mcp.Description("排序值（修改时写入 sou_order，不传为 0）")),
 	), func(_ context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		args := request.GetArguments()

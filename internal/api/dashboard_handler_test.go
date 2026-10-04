@@ -9,10 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"lylme_spage/internal/service"
+	"lylme_spage/internal/stats"
 )
 
 // apiReq 发起一次 /api/v1 请求；key 为空表示不带 Authorization；
@@ -300,5 +302,44 @@ func TestDashboardRequiresKey(t *testing.T) {
 	w := apiReq(t, r, http.MethodGet, "/api/v1/dashboard", "", "")
 	if w.Code != http.StatusUnauthorized {
 		t.Fatalf("无 key GET /dashboard 状态码 = %d, want 401", w.Code)
+	}
+}
+
+func TestGetDashboardWithVisits(t *testing.T) {
+	r, d, key := newTestV1(t, func(v1 *gin.RouterGroup, d *Deps) { RegisterDashboardRoutes(v1, d) })
+
+	// 无 stats 时 visits 为空数组结构而非 null
+	w := apiReq(t, r, http.MethodGet, "/api/v1/dashboard", key, "")
+	var before dashboardSummaryResp
+	mustOKData(t, w, &before)
+	if before.Visits.Labels == nil || before.Visits.PV == nil || before.Visits.IP == nil {
+		t.Fatalf("无 stats 时 visits 数组应归一为空数组: %+v", before.Visits)
+	}
+	if before.Visits.Today != 0 {
+		t.Fatalf("无 stats 时 today = %d, want 0", before.Visits.Today)
+	}
+
+	// 构造今日统计日志：PV=3，1 个独立 IP
+	logsDir := filepath.Join(d.Cfg.RootDir, "logs-visits")
+	todayFile := filepath.Join(logsDir, time.Now().Format("20060102")+".log")
+	if err := os.MkdirAll(logsDir, 0o755); err != nil {
+		t.Fatalf("创建统计目录失败: %v", err)
+	}
+	if err := os.WriteFile(todayFile, []byte(`{"pv":3,"ips":{"1.1.1.1":3}}`), 0o644); err != nil {
+		t.Fatalf("写入今日统计失败: %v", err)
+	}
+	d.Stats = stats.New(logsDir, nil)
+
+	w = apiReq(t, r, http.MethodGet, "/api/v1/dashboard", key, "")
+	var after dashboardSummaryResp
+	mustOKData(t, w, &after)
+	if after.Visits.Today != 3 || after.Visits.TodayIP != 1 {
+		t.Fatalf("visits today/today_ip = %d/%d, want 3/1", after.Visits.Today, after.Visits.TodayIP)
+	}
+	if len(after.Visits.Labels) != 7 || len(after.Visits.PV) != 7 || len(after.Visits.IP) != 7 {
+		t.Fatalf("近 7 天图表数组长度异常: %+v", after.Visits)
+	}
+	if after.Visits.PV[6] != 3 {
+		t.Fatalf("图表今日 PV（末位） = %d, want 3", after.Visits.PV[6])
 	}
 }

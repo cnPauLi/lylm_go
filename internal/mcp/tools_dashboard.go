@@ -8,14 +8,28 @@ import (
 	"lylme_spage/internal/service"
 )
 
+// mcpVisits 近 7 天访问统计（结构与 REST visitsResp 一致）
+type mcpVisits struct {
+	Today     int      `json:"today"`
+	Yesterday int      `json:"yesterday"`
+	Total     int      `json:"total"`
+	TodayIP   int      `json:"today_ip"`
+	TotalIP   int      `json:"total_ip"`
+	Month     int      `json:"month"`
+	Labels    []string `json:"labels"`
+	PV        []int    `json:"pv"`
+	IP        []int    `json:"ip"`
+}
+
 // mcpDashboardSummary 仪表盘汇总（结构与 REST dashboardSummaryResp 一致）
 type mcpDashboardSummary struct {
-	Links      int64  `json:"links"`
-	Groups     int64  `json:"groups"`
-	ApplyRows  int64  `json:"apply_rows"`
-	AppVersion string `json:"app_version"`
-	DBVersion  string `json:"db_version"`
-	Build      string `json:"build"`
+	Links      int64          `json:"links"`
+	Groups     int64          `json:"groups"`
+	ApplyRows  int64          `json:"apply_rows"`
+	AppVersion string         `json:"app_version"`
+	DBVersion  string         `json:"db_version"`
+	Build      string         `json:"build"`
+	Visits     mcpVisits      `json:"visits"`
 }
 
 // mcpCleanupFile 未使用文件单项（结构与 REST cleanupFileResp 一致）
@@ -92,9 +106,33 @@ func (set *MCPSet) registerDashboardTools() {
 
 	// dashboard_summary：GET /dashboard
 	set.add(mcp.NewTool("dashboard_summary",
-		mcp.WithDescription("查询仪表盘汇总：链接总数、分组总数、待审核申请数、程序版本、数据库版本与建站时间。"),
+		mcp.WithDescription("查询仪表盘汇总：链接总数、分组总数、待审核申请数、程序版本、数据库版本、建站时间与近 7 天访问统计。"),
 	), func(_ context.Context, _ mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		sum := d.Dashboard.Summary(d.AppVersion)
+		vis := mcpVisits{Labels: []string{}, PV: []int{}, IP: []int{}}
+		if d.Stats != nil {
+			s := d.Stats.Summary(7)
+			vis = mcpVisits{
+				Today:     s.Today,
+				Yesterday: s.Yesterday,
+				Total:     s.Total,
+				TodayIP:   s.TodayIP,
+				TotalIP:   s.TotalIP,
+				Month:     s.Month,
+				Labels:    s.Labels,
+				PV:        s.PV,
+				IP:        s.IP,
+			}
+			if vis.Labels == nil {
+				vis.Labels = []string{}
+			}
+			if vis.PV == nil {
+				vis.PV = []int{}
+			}
+			if vis.IP == nil {
+				vis.IP = []int{}
+			}
+		}
 		return jsonResult(mcpDashboardSummary{
 			Links:      sum.Links,
 			Groups:     sum.Groups,
@@ -102,6 +140,7 @@ func (set *MCPSet) registerDashboardTools() {
 			AppVersion: sum.AppVersion,
 			DBVersion:  sum.DBVersion,
 			Build:      sum.Build,
+			Visits:     vis,
 		}), nil
 	})
 

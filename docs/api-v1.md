@@ -2478,7 +2478,7 @@ Content-Type: application/json
 
 #### 1. GET /dashboard
 
-- **用途**：返回后台仪表盘汇总：链接/分组/待审申请计数与版本信息。
+- **用途**：返回后台仪表盘汇总：链接/分组/待审申请计数、版本信息与近 7 天访问统计。
 - **鉴权**：需要。
 - **入参**：无。
 - **出参 `data`**：
@@ -2491,6 +2491,21 @@ Content-Type: application/json
 | `app_version` | string | 后端程序版本 |
 | `db_version` | string | 数据库版本（配置键 `version`，未设置为空串） |
 | `build` | string | 建站时间（配置键 `build`，未设置为空串） |
+| `visits` | object | 近 7 天访问统计（无统计数据时数组字段为空数组） |
+
+`visits`：
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `today` | int | 今日浏览量（PV） |
+| `yesterday` | int | 昨日浏览量 |
+| `total` | int | 累计浏览量 |
+| `today_ip` | int | 今日独立 IP 数 |
+| `total_ip` | int | 累计独立 IP 数 |
+| `month` | int | 本月浏览量 |
+| `labels` | string array | 近 7 天横轴标签（末位为「今天」） |
+| `pv` | int array | 近 7 天每日浏览量 |
+| `ip` | int array | 近 7 天每日独立 IP 数 |
 
 - **错误码**：401、429（该端点处理器无错误返回路径，不产生 400/404/500）。
 - **请求示例**：
@@ -2512,7 +2527,18 @@ curl -H "Authorization: Bearer sk-xxxx" \
     "apply_rows": 3,
     "app_version": "v2.0.0",
     "db_version": "1.6",
-    "build": "2024-05-01"
+    "build": "2024-05-01",
+    "visits": {
+      "today": 42,
+      "yesterday": 30,
+      "total": 1024,
+      "today_ip": 12,
+      "total_ip": 300,
+      "month": 800,
+      "labels": ["09-28", "09-29", "09-30", "10-01", "前天", "昨天", "今天"],
+      "pv": [10, 20, 15, 8, 12, 30, 42],
+      "ip": [5, 9, 7, 4, 6, 11, 12]
+    }
   }
 }
 ```
@@ -2766,7 +2792,7 @@ curl -X POST https://example.com/mcp \
 | 51 | `theme_switch` | 按目录名切换当前主题 | PUT /themes/current | `name*` |
 | 52 | `theme_config_get` | 读取当前主题字段定义与已保存配置值 | GET /themes/config | 无 |
 | 53 | `theme_config_save` | 保存主题自定义配置（全量替换；switch/checkbox 缺省补齐）；MCP 仅支持 values 形式 | PUT /themes/config | theme、values(object) |
-| 54 | `dashboard_summary` | 查询仪表盘计数与版本信息 | GET /dashboard | 无 |
+| 54 | `dashboard_summary` | 查询仪表盘计数、版本与近 7 天访问统计 | GET /dashboard | 无 |
 | 55 | `files_cleanup_scan` | 扫描未使用文件并返回报告 | GET /files/cleanup | 无 |
 | 56 | `files_cleanup_delete` | 删除未使用文件，返回成功/失败计数 | POST /files/cleanup | `rels*`(string[]) |
 

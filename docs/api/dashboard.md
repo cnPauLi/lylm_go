@@ -20,7 +20,7 @@
 
 ## GET /dashboard
 
-返回后台仪表盘汇总数据：链接/分组/待审申请计数与版本信息。
+返回后台仪表盘汇总数据：链接/分组/待审申请计数、版本信息与近 7 天访问统计。
 
 ### 鉴权
 
@@ -40,6 +40,21 @@
 | `app_version` | string | 后端程序版本 |
 | `db_version` | string | 数据库版本（配置键 `version`，未设置时为空串） |
 | `build` | string | 建站时间（配置键 `build`，未设置时为空串） |
+| `visits` | object | 近 7 天访问统计（无统计数据时数组字段为空数组） |
+
+`visits`：
+
+| 字段 | 类型 | 含义 |
+|------|------|------|
+| `today` | integer | 今日浏览量（PV） |
+| `yesterday` | integer | 昨日浏览量 |
+| `total` | integer | 累计浏览量 |
+| `today_ip` | integer | 今日独立 IP 数 |
+| `total_ip` | integer | 累计独立 IP 数 |
+| `month` | integer | 本月浏览量 |
+| `labels` | string array | 近 7 天横轴标签（末位为「今天」） |
+| `pv` | integer array | 近 7 天每日浏览量 |
+| `ip` | integer array | 近 7 天每日独立 IP 数 |
 
 ### 错误码
 
@@ -69,7 +84,18 @@ curl -H "Authorization: Bearer sk-xxxx" \
     "apply_rows": 3,
     "app_version": "v2.0.0",
     "db_version": "1.6",
-    "build": "2024-05-01"
+    "build": "2024-05-01",
+    "visits": {
+      "today": 42,
+      "yesterday": 30,
+      "total": 1024,
+      "today_ip": 12,
+      "total_ip": 300,
+      "month": 800,
+      "labels": ["09-28", "09-29", "09-30", "10-01", "前天", "昨天", "今天"],
+      "pv": [10, 20, 15, 8, 12, 30, 42],
+      "ip": [5, 9, 7, 4, 6, 11, 12]
+    }
   }
 }
 ```

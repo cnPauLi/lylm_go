@@ -4,17 +4,64 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"lylme_spage/internal/service"
+	"lylme_spage/internal/stats"
 )
+
+// visitsResp 近 7 天访问统计（图表结构，与 stats.Summary 对应）。
+type visitsResp struct {
+	Today     int      `json:"today"`     // 今日浏览量
+	Yesterday int      `json:"yesterday"` // 昨日浏览量
+	Total     int      `json:"total"`     // 累计浏览量
+	TodayIP   int      `json:"today_ip"`  // 今日独立 IP 数
+	TotalIP   int      `json:"total_ip"`  // 累计独立 IP 数
+	Month     int      `json:"month"`     // 本月浏览量
+	Labels    []string `json:"labels"`    // 近 7 天横轴标签
+	PV        []int    `json:"pv"`        // 近 7 天每日浏览量
+	IP        []int    `json:"ip"`        // 近 7 天每日独立 IP 数
+}
+
+func toVisitsResp(s stats.Summary) visitsResp {
+	return visitsResp{
+		Today:     s.Today,
+		Yesterday: s.Yesterday,
+		Total:     s.Total,
+		TodayIP:   s.TodayIP,
+		TotalIP:   s.TotalIP,
+		Month:     s.Month,
+		Labels:    nonNilStrings(s.Labels),
+		PV:        nonNilInts(s.PV),
+		IP:        nonNilInts(s.IP),
+	}
+}
+
+func emptyVisitsResp() visitsResp {
+	return visitsResp{Labels: []string{}, PV: []int{}, IP: []int{}}
+}
+
+func nonNilStrings(v []string) []string {
+	if v == nil {
+		return []string{}
+	}
+	return v
+}
+
+func nonNilInts(v []int) []int {
+	if v == nil {
+		return []int{}
+	}
+	return v
+}
 
 // dashboardSummaryResp GET /dashboard 出参：计数 + 版本信息。
 // 字段由 service.DashboardSummary 映射，REST 层固定 snake_case 契约。
 type dashboardSummaryResp struct {
-	Links      int64  `json:"links"`       // 链接总数
-	Groups     int64  `json:"groups"`      // 分组总数
-	ApplyRows  int64  `json:"apply_rows"`  // 待审申请数（apply_status=0）
-	AppVersion string `json:"app_version"` // 程序版本
-	DBVersion  string `json:"db_version"`  // 数据库版本（配置键 version）
-	Build      string `json:"build"`       // 建站时间（配置键 build）
+	Links      int64       `json:"links"`       // 链接总数
+	Groups     int64       `json:"groups"`      // 分组总数
+	ApplyRows  int64       `json:"apply_rows"`  // 待审申请数（apply_status=0）
+	AppVersion string      `json:"app_version"` // 程序版本
+	DBVersion  string      `json:"db_version"`  // 数据库版本（配置键 version）
+	Build      string      `json:"build"`       // 建站时间（配置键 build）
+	Visits     visitsResp  `json:"visits"`      // 近 7 天访问统计
 }
 
 // cleanupFileResp 未使用文件单项
@@ -67,6 +114,10 @@ type cleanupDeleteResp struct {
 func RegisterDashboardRoutes(g gin.IRouter, d *Deps) {
 	g.GET("/dashboard", func(c *gin.Context) {
 		sum := d.Dashboard.Summary(d.AppVersion)
+		vis := emptyVisitsResp()
+		if d.Stats != nil {
+			vis = toVisitsResp(d.Stats.Summary(7))
+		}
 		OK(c, dashboardSummaryResp{
 			Links:      sum.Links,
 			Groups:     sum.Groups,
@@ -74,6 +125,7 @@ func RegisterDashboardRoutes(g gin.IRouter, d *Deps) {
 			AppVersion: sum.AppVersion,
 			DBVersion:  sum.DBVersion,
 			Build:      sum.Build,
+			Visits:     vis,
 		})
 	})
 

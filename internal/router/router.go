@@ -119,6 +119,7 @@ func Setup(h *Handler) *gin.Engine {
 
 	// REST API（/api/v1）与 MCP 服务（/mcp）共用同一 Deps 实例与同一密钥体系
 	d := api.NewDeps(h.Store, h.Cfg, h.AppVersion)
+	d.Stats = statsStore
 	api.RegisterV1(r, d)
 	mcp.Mount(r, d)
 
