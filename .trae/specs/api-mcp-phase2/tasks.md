@@ -388,7 +388,7 @@
 - rule：每域至少 1 个工具 call 返回 code 语义成功且结果可 JSON 解析为对应出参结构；证据：集成测试。
 - rubric（局部，0–2）：工具描述与参数 schema 对 LLM 的可用性 ≥1.5；证据：评审。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [internal/mcp](file:///Volumes/data/lylm_go/internal/mcp/server.go) 包：56 个工具与 /api/v1 操作一一对应（REST 无 apply 创建端点故无 apply_create）；Streamable HTTP 无状态（WithStateLess），[http.go](file:///Volumes/data/lylm_go/internal/mcp/http.go) Mount 挂 /mcp 与 /mcp/（GET/POST/DELETE，Bearer 鉴权+限流）；mcp-go v1.0.0 转直接依赖；集成测试覆盖 401/握手/tools/list=56/每域 call/参数错误 IsError，SSE/JSON 双兼容解析。主 agent 独立 build/vet/test 全通过。
 
 ---
 
@@ -396,7 +396,7 @@
 
 - **Priority**: high
 - **Depends On**: T2、T3
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建后台模板 `web/admin/mcp.html`（沿用 head/foot 与现有页面卡片风格）：
@@ -413,7 +413,7 @@
 - rule：重新生成后页面展示新 key，且旧 key 对 /api/v1 与 /mcp 返回 401、新 key 200；证据：端到端记录。
 - rule：复制的配置 JSON 中 Authorization 与页面 key 完全一致；证据：DOM/JS 检查。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [apikey_page.go](file:///Volumes/data/lylm_go/internal/admin/apikey_page.go)（GET mcp.php 页面 + POST ajax_mcp.php ensure/regenerate，frag+CSRF）与 [mcp.html](file:///Volumes/data/lylm_go/web/admin/mcp.html)（密钥/地址/配置三区，clipboard+execCommand 降级，jquery-confirm 二次确认）；[head.html](file:///Volumes/data/lylm_go/web/admin/head.html) 侧边栏新增「接口与 MCP」（mdi-console-line，打包图标库无 mdi-api）；Handler 新增 KeySvc。3 个测试：配置 JSON 结构、登录保护、ensure 幂等/regenerate 旧 key 失效新 key 生效。主 agent 独立 build/vet/test 全通过。
 
 ---
 
@@ -421,7 +421,7 @@
 
 - **Priority**: high
 - **Depends On**: T17
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 汇总各任务增量，形成完整 `docs/api-v1.md`：
@@ -434,7 +434,7 @@
 - rule：AC-1 的 12 域操作在文档与路由中双向无遗漏；证据：核对清单。
 - rubric（AC-9）：按 0–3 锚点评分，达到 ≥2.5；证据：独立评审打分与理由。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: [docs/api-v1.md](file:///Volumes/data/lylm_go/docs/api-v1.md) 2779 行：通用约定（鉴权/信封/分页/错误码/限流）、57 个端点小节（1 ping+56 业务，与注册路由双向核对）、MCP 章节（连接示例+握手 curl+56 工具↔REST 总表，与 tools_*.go 逐一核对）；字段/枚举/长度以代码 binding tag 与 JSON tag 为准；自评 AC-9 = 3.0。
 
 ---
 
