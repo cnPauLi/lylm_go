@@ -1,9 +1,7 @@
 package admin
 
 import (
-	"crypto/md5"
 	"crypto/subtle"
-	"encoding/hex"
 	"net"
 	"net/http"
 	"strings"
@@ -11,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"lylme_spage/internal/service"
 	"lylme_spage/internal/webutil"
 )
 
@@ -41,11 +40,6 @@ func clientIP(c *gin.Context) string {
 		return "unknown"
 	}
 	return host
-}
-
-func md5hex(s string) string {
-	sum := md5.Sum([]byte(s))
-	return hex.EncodeToString(sum[:])
 }
 
 // lockState 返回当前 IP 的失败状态（自动清理过期锁定）
@@ -160,7 +154,7 @@ func (h *Handler) LoginSubmit(c *gin.Context) {
 
 	wantUser := h.Store.Get("admin_user", "admin")
 	wantPwd := h.Store.Get("admin_pwd", "")
-	gotPwd := md5hex("lylme" + pass)
+	gotPwd := service.AdminPasswordHash(pass)
 	if user != "" &&
 		subtle.ConstantTimeCompare([]byte(wantUser), []byte(user)) == 1 &&
 		subtle.ConstantTimeCompare([]byte(wantPwd), []byte(gotPwd)) == 1 {
