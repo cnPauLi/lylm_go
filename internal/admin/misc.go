@@ -217,11 +217,8 @@ func (h *Handler) ApplyPage(c *gin.Context) {
 	if c.Request.Method == http.MethodPost {
 		switch set {
 		case "conf_submit":
-			if err := h.Store.Set("apply", strconv.Itoa(postInt(c, "apply")), ""); err != nil {
-				h.Log.Errorf("保存收录开关失败: %v", err)
-			}
-			if err := h.Store.Set("apply_gg", c.PostForm("apply_gg"), ""); err != nil {
-				h.Log.Errorf("保存收录公告失败: %v", err)
+			if err := h.ApplySvc.UpdateSettings(postInt(c, "apply"), c.PostForm("apply_gg")); err != nil {
+				h.Log.Errorf("保存收录设置失败: %v", err)
 			}
 			h.renderHTML(c, alert("成功", "修改成功！", "./apply.php"))
 			return
@@ -231,27 +228,23 @@ func (h *Handler) ApplyPage(c *gin.Context) {
 		}
 	}
 
-	ap := &applyPage{Set: set, GroupMap: map[int]string{}, SiteHost: siteURL(c, 2)}
-	if err := h.Store.DB().Order("group_order ASC").Find(&ap.Groups).Error; err == nil {
-		for _, g := range ap.Groups {
-			ap.GroupMap[g.GroupID] = g.GroupName
-		}
+	ap := &applyPage{Set: set, SiteHost: siteURL(c, 2)}
+	res, err := h.ApplySvc.List(-1)
+	if err != nil {
+		h.Log.Errorf("查询收录数据失败: %v", err)
 	}
-	if err := h.Store.DB().Model(&models.Apply{}).Count(&ap.ApplyRows).Error; err != nil {
-		h.Log.Errorf("统计收录失败: %v", err)
-	}
+	ap.Groups = res.Groups
+	ap.GroupMap = res.GroupMap
+	ap.ApplyRows = int64(len(res.Rows))
 	if set == "edit" {
-		id := queryInt(c, "id")
-		var row models.Apply
-		if err := h.Store.DB().Where("apply_id = ?", id).First(&row).Error; err != nil {
+		row, err := h.ApplySvc.Get(queryInt(c, "id"))
+		if err != nil {
 			h.renderHTML(c, `<div class="alert alert-warning">该申请记录不存在！</div><a href="./apply.php">&lt;&lt;返回收录管理列表</a>`)
 			return
 		}
 		ap.Edit = &row
 	} else if set != "conf" {
-		if err := h.Store.DB().Order("apply_time DESC").Find(&ap.Rows).Error; err != nil {
-			h.Log.Errorf("查询收录列表失败: %v", err)
-		}
+		ap.Rows = res.Rows
 	}
 	data := h.newData(c, "收录管理", "apply.php", "apply")
 	data.Page = ap
@@ -259,19 +252,17 @@ func (h *Handler) ApplyPage(c *gin.Context) {
 }
 
 func (h *Handler) applyEdit(c *gin.Context) {
-	id := queryInt(c, "id")
-	name := c.PostForm("apply_name")
-	if name == "" {
-		h.renderHTML(c, notify("保存错误,请确保带星号的都不为空！", "danger", 3000))
-		return
-	}
-	updates := map[string]any{
-		"apply_name":  name,
-		"apply_group": postInt(c, "apply_group"),
-		"apply_icon":  c.PostForm("apply_icon"),
-		"apply_url":   c.PostForm("apply_url"),
-	}
-	if err := h.Store.DB().Model(&models.Apply{}).Where("apply_id = ?", id).Updates(updates).Error; err != nil {
+	err := h.ApplySvc.Update(queryInt(c, "id"), service.ApplyUpdateInput{
+		Name:    c.PostForm("apply_name"),
+		URL:     c.PostForm("apply_url"),
+		GroupID: postInt(c, "apply_group"),
+		Icon:    c.PostForm("apply_icon"),
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInput) {
+			h.renderHTML(c, notify("保存错误,请确保带星号的都不为空！", "danger", 3000))
+			return
+		}
 		h.Log.Errorf("修改收录失败: %v", err)
 		h.renderHTML(c, notify("修改失败！", "danger", 3000))
 		return
@@ -290,7 +281,7 @@ func (h *Handler) AjaxApply(c *gin.Context) {
 			jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！"})
 			return
 		}
-		if err := h.Store.DB().Where("apply_id IN ?", ids).Delete(&models.Apply{}).Error; err != nil {
+		if err := h.ApplySvc.BatchDelete(ids); err != nil {
 			h.Log.Errorf("删除收录失败: %v", err)
 			jsonWrite(c, gin.H{"code": 100, "msg": "错误，失败" + strconv.Itoa(len(ids)) + "条"})
 			return
@@ -307,38 +298,10 @@ func (h *Handler) ajaxApplyStatus(c *gin.Context) {
 	if c.PostForm("status") == "1" {
 		sw = 1
 	}
-	ids := postInts(c, "id")
-	for _, id := range ids {
-		if sw == 1 {
-			var row models.Apply
-			if err := h.Store.DB().Where("apply_status = ? AND apply_id = ?", 0, id).First(&row).Error; err == nil {
-				h.insertLinkFromApply(&row)
-			}
-		}
-		if err := h.Store.DB().Model(&models.Apply{}).
-			Where("apply_status = ? AND apply_id = ?", 0, id).Update("apply_status", sw).Error; err != nil {
-			h.Log.Errorf("更新收录状态失败: %v", err)
-		}
+	if err := h.ApplySvc.SetStatus(postInts(c, "id"), sw); err != nil {
+		h.Log.Errorf("更新收录状态失败: %v", err)
 	}
 	jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！"})
-}
-
-// insertLinkFromApply 审核通过时将申请写入链接表
-func (h *Handler) insertLinkFromApply(row *models.Apply) {
-	var maxID int
-	_ = h.Store.DB().Model(&models.Link{}).Select("COALESCE(MAX(id),0)").Scan(&maxID).Error
-	rec := models.Link{
-		Name:       stripTags(row.ApplyName),
-		GroupID:    row.ApplyGroup,
-		URL:        stripTags(row.ApplyURL),
-		Icon:       row.ApplyIcon,
-		LinkDesc:   "",
-		LinkOrder:  maxID + 1,
-		LinkStatus: 1,
-	}
-	if err := h.Store.DB().Create(&rec).Error; err != nil {
-		h.Log.Errorf("审核通过写入链接失败: %v", err)
-	}
 }
 
 // ===================== 主题 theme.php =====================

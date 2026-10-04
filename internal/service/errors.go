@@ -28,4 +28,7 @@ var (
 
 	// ErrPwdNotFound 加密组不存在
 	ErrPwdNotFound = errors.New("pwd: 加密组不存在")
+
+	// ErrApplyNotFound 收录申请不存在
+	ErrApplyNotFound = errors.New("apply: 收录申请不存在")
 )

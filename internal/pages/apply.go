@@ -15,12 +15,14 @@ import (
 	"lylme_spage/internal/fetch"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/models"
+	"lylme_spage/internal/service"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/webutil"
 )
 
 // Apply 收录申请页：/apply/、/apply、/apply/index.php（GET/POST）
 func Apply(cfg *config.Config, store *site.Store, engine *Engine, log *logger.Logger) gin.HandlerFunc {
+	applySvc := service.NewApplyService(store)
 	return func(c *gin.Context) {
 		// 1) 抓取目标站点 head 信息（AJAX: index.php?url=）
 		if rawURL := c.Query("url"); rawURL != "" {
@@ -55,7 +57,7 @@ func Apply(cfg *config.Config, store *site.Store, engine *Engine, log *logger.Lo
 				_, _ = c.Writer.WriteString(`{"code": "400", "msg": "网站已关闭收录"}`)
 				return
 			}
-			_, _ = c.Writer.WriteString(insertApply(store, log, c))
+			_, _ = c.Writer.WriteString(insertApply(applySvc, store, log, c))
 			return
 		}
 
@@ -79,7 +81,7 @@ func Apply(cfg *config.Config, store *site.Store, engine *Engine, log *logger.Lo
 }
 
 // insertApply 校验并写入收录申请，返回与原始 PHP apply() 一致的 JSON 字符串
-func insertApply(store *site.Store, log *logger.Logger, c *gin.Context) string {
+func insertApply(applySvc *service.ApplyService, store *site.Store, log *logger.Logger, c *gin.Context) string {
 	name := stripTags(strings.TrimSpace(c.PostForm("name")))
 	rawURL := stripTags(strings.TrimSpace(c.PostForm("url")))
 	icon := stripTags(strings.TrimSpace(c.PostForm("icon")))
@@ -110,16 +112,10 @@ func insertApply(store *site.Store, log *logger.Logger, c *gin.Context) string {
 		return `{"code": "-3", "msg": "链接已存在，请勿重复提交"}`
 	}
 
-	rec := models.Apply{
-		ApplyName:   name,
-		ApplyURL:    rawURL,
-		ApplyGroup:  groupID,
-		ApplyIcon:   icon,
-		ApplyDesc:   userIP,
-		ApplyTime:   time.Now(),
-		ApplyStatus: status,
-	}
-	if err := store.DB().Create(&rec).Error; err != nil {
+	rec, err := applySvc.Create(service.ApplyCreateInput{
+		Name: name, URL: rawURL, GroupID: groupID, Icon: icon, Desc: userIP,
+	})
+	if err != nil {
 		log.Errorf("收录申请写入失败: %v", err)
 		return `{"code": "-4", "msg": "数据库操作失败，请联系网站管理员"}`
 	}
@@ -128,7 +124,12 @@ func insertApply(store *site.Store, log *logger.Logger, c *gin.Context) string {
 	case 0:
 		return `{"code": "200", "msg": "请等待管理员审核"}`
 	case 1:
-		if insertLink(store, log, name, rawURL, icon, groupID) {
+		// 免审核：复用审核通过规则（写链接 + 状态置 1），以链接表实际增量判定结果
+		var before, after int64
+		_ = store.DB().Model(&models.Link{}).Count(&before).Error
+		_ = applySvc.SetStatus([]int{rec.ApplyID}, 1)
+		_ = store.DB().Model(&models.Link{}).Count(&after).Error
+		if after == before+1 {
 			return `{"code": "200", "msg": "网站已收录"}`
 		}
 		return `{"code": "-5", "msg": "收录失败，请联系网站管理员"}`
@@ -148,27 +149,6 @@ func validApplyURL(s string) bool {
 		return false
 	}
 	return u.Host != ""
-}
-
-// insertLink 收录后自动插入链接（等价 PHP ins_link）
-func insertLink(store *site.Store, log *logger.Logger, name, rawURL, icon string, groupID int) bool {
-	var maxID int
-	if err := store.DB().Model(&models.Link{}).Select("COALESCE(MAX(id), 0)").Scan(&maxID).Error; err != nil {
-		log.Errorf("查询链接最大ID失败: %v", err)
-	}
-	link := models.Link{
-		Name:      name,
-		GroupID:   groupID,
-		URL:       rawURL,
-		Icon:      icon,
-		LinkDesc:  "",
-		LinkOrder: maxID + 1,
-	}
-	if err := store.DB().Create(&link).Error; err != nil {
-		log.Errorf("自动收录链接失败: %v", err)
-		return false
-	}
-	return true
 }
 
 // WxPlus 微信推送 /apply/wxplus.php
