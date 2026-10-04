@@ -1724,7 +1724,7 @@ Authorization: Bearer sk-xxxx
 
 #### 6. PUT /settings/account
 
-- **用途**：修改后台管理员用户名和/或密码。旧密码校验最先执行；业务分支与原后台 `user.php` 一致。
+- **用途**：修改后台管理员用户名和/或密码。旧密码校验最先执行；业务分支与原后台 `user` 模块一致。
 - **鉴权**：需要。
 - **入参（JSON Body）**：
 
@@ -2352,7 +2352,7 @@ Content-Type: application/json
 
 #### 3. GET /themes/config
 
-- **用途**：返回当前主题的配置表单字段定义（解析自主题 `config.php`）与已保存的自定义配置（配置键 `theme_config_<tpl>`）。
+- **用途**：返回当前主题的配置表单字段定义（解析自主题 `theme.ini` 的 `theme_config`）与已保存的自定义配置（配置键 `theme_config_<tpl>`）。
 - **鉴权**：需要。
 - **入参**：无（始终针对当前主题）。
 - **出参 `data`**：

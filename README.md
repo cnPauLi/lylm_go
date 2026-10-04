@@ -1,6 +1,6 @@
 # LyLme Spage（Go 版）
 
-六零导航页（原 PHP 项目 `lylme_spage`）的 **Go(Gin) + GORM** 重写版。后端负责数据、业务与模板渲染调度；前端沿用原版「套模板」机制，**HTML / CSS / JS 内容与目录结构保持不变**，仅将主题内的 PHP 模板逻辑等价转换为 Go 模板（`*.php` 作为参考保留，`*.html` 为实际渲染模板）。
+六零导航页（原 PHP 项目 `lylme_spage`）的 **Go(Gin) + GORM** 重写版。后端负责数据、业务与模板渲染调度；前端沿用原版「套模板」机制，**HTML / CSS / JS 内容与目录结构保持不变**，仅将主题内的 PHP 模板逻辑等价转换为 Go 模板（`*.html` 为实际渲染模板）。
 
 > 开发规范、分层约束、主题转换契约等详见 [`AGENTS.md`](./AGENTS.md)。本文档面向部署与使用。
 
@@ -32,7 +32,7 @@
 ├── go.mod / go.sum
 ├── .env / .env.example         # 配置（.env 不入库）
 ├── AGENTS.md                   # 开发规范
-├── template/<主题>/            # 原版主题（css/js 原样保留；*.php 为参考，*.html 为 Go 模板）
+├── template/<主题>/            # 原版主题（css/js 原样保留；*.html 为 Go 模板）
 ├── assets/                     # 原版静态资源
 ├── site/static/                # 详情页静态资源
 ├── apply/                      # 收录申请前端资源
@@ -42,7 +42,7 @@
 │   ├── logger/                 # 分级文件日志
 │   ├── models/                 # GORM 模型
 │   ├── database/               # 连接、迁移、种子数据（seed.sql）
-│   ├── theme/                  # 主题发现、theme.ini、config.php 解析
+│   ├── theme/                  # 主题发现、theme.ini（含 theme_config 字段定义）解析
 │   ├── site/                   # 数据访问层（配置缓存 + 前台数据查询）
 │   ├── view/                   # 主题模板上下文、lists/rearr、主题辅助函数
 │   ├── router/                 # 路由注册
@@ -137,24 +137,24 @@ data/ logs/ cache/ files/# 运行期生成物（可预建空目录）
 |------|------|
 | 首页 | `/` |
 | 详情页 | `/site-{id}.html`、`/site` |
-| 收录申请 | `/apply/`、`/apply/index.php`、`/apply/wxplus.php` |
+| 收录申请 | `/apply/`、`/apply/wxplus` |
 | 关于 | `/about/`、`/about` |
-| 访问密码 | `/pwd/`、`/pwd`、`/include/go.php` |
-| 验证码 | `/include/validatecode.php` |
-| 图片上传 | `/include/file.php` |
-| 二维码 | `/include/qrcode.php` |
+| 访问密码 | `/pwd/`、`/pwd`、`/include/go` |
+| 验证码 | `/include/validatecode` |
+| 图片上传 | `/include/file` |
+| 二维码 | `/include/qrcode` |
 | 站点地图 | `/sitemap.xml` |
-| Bing 壁纸 | `/assets/img/bing.php`、`/assets/img/cron.php` |
+| Bing 壁纸 | `/assets/img/bing`、`/assets/img/cron` |
 | 主题点击统计占位 | `POST /clitool`（返回 `{"code":200}`） |
-| 后台管理 | `/{ADMIN_PATH}/`（默认 `/admin/`，登录 `/admin/login.php`） |
+| 后台管理 | `/{ADMIN_PATH}/`（默认 `/admin/`，登录 `/admin/login`） |
 | 安装向导 | `/install/` |
 | 健康检查 | `/healthz` |
 
-静态资源：`/assets/*`、`/template/*`、`/site/static/*`、`/files/*`；`.php` 源码一律返回 404。
+静态资源：`/assets/*`、`/template/*`、`/site/static/*`、`/files/*`；PHP 脚本文件请求一律返回 404。
 
 ## 七、主题转换机制
 
-- 主题目录 `template/<主题>/` 需包含 `theme.ini`（JSON，含 `theme_version` 等）与 `index.html`；`config.php` 定义主题自定义配置 `$theme_config`。
+- 主题目录 `template/<主题>/` 需包含 `theme.ini`（JSON，含 `theme_version` 与顶层 `theme_config` 字段定义）与 `index.html`。`theme_config` 数组定义字段：type/name/title/description/verify/placeholder/value/enum，value 支持 `{"$conf":"键"}` 引用站点配置，enum 为 [value,label] 二元组数组。
 - 模板引擎解析 `template/<主题>/*.html` 并以 `index.html` 为入口，子模板通过 `{{ template "list.html" . }}` 等方式引入。
 - PHP → Go 模板主要约定：
 
@@ -163,7 +163,7 @@ data/ logs/ cache/ files/# 运行期生成物（可预建空目录）
 | `<?php echo $conf['x'] ?>` | `{{ .Cfg "x" }}`（输出 HTML 用 `{{ raw (.Cfg "x") }}`） |
 | `theme_config('a', def)` | `{{ .ThemeCfg "a" "def" }}` |
 | `while ($row = $DB->fetch(...))` | `{{ range .Groups }}` / `{{ range .Sou }}` / `{{ range .Tags }}` |
-| `include "list.php"` | `{{ template "list.html" . }}` |
+| `include "list"` | `{{ template "list.html" . }}` |
 | `lists($html)` | `{{ .Lists (dict "g1" ... "l3" ...) }}` |
 | `listjson()` | `{{ .ListJSON }}` |
 | `background()` / `yan()` / `rel` | `{{ .BackgroundImg }}` / `{{ .Yan }}` / `{{ .Rel }}` |
@@ -177,7 +177,7 @@ data/ logs/ cache/ files/# 运行期生成物（可预建空目录）
 
 ### 如何新增主题
 
-1. 在 `template/` 下新建主题目录，放入 `theme.ini`、`config.php`、`index.html` 及所需 `list.html` / `head.html` / `foot.html` 等。
+1. 在 `template/` 下新建主题目录，放入 `theme.ini`、`index.html` 及所需 `list.html` / `head.html` / `foot.html` 等。
 2. 将原 PHP 模板按上表契约改写为 Go 模板，保持 DOM/类名/ID/脚本引用与顺序不变。
 3. 后台「主题」页选择该主题（写入配置项 `template`），或直接 `update lylme_config set v='<主题>' where k='template';`。
 4. 访问 `/` 验证渲染（模板解析/执行错误会在响应与 `logs/` 中给出提示）。

@@ -1,6 +1,6 @@
 # Theme 域 API（/api/v1）
 
-主题域端点用于查看可用主题、切换当前主题，以及读写主题的自定义配置（对应主题目录下 `config.php` 定义的表单字段）。
+主题域端点用于查看可用主题、切换当前主题，以及读写主题的自定义配置（对应主题 `theme.ini` 顶层 `theme_config` 数组定义的表单字段）。
 
 ## 通用约定
 
@@ -150,7 +150,7 @@ PUT /api/v1/themes/current
 
 ## 3. GET /themes/config —— 主题配置字段定义与当前值
 
-- **用途**：返回当前主题的配置表单定义（解析自主题 `config.php`）与已保存的自定义配置（配置键 `theme_config_<tpl>`）。
+- **用途**：返回当前主题的配置表单定义（解析自主题 `theme.ini` 的 `theme_config`）与已保存的自定义配置（配置键 `theme_config_<tpl>`）。
 - **鉴权**：Bearer API Key。
 - **入参**：无（始终针对当前主题）。
 

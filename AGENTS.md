@@ -20,7 +20,7 @@
 ├── go.mod / go.sum
 ├── .env / .env.example         # 配置（.env 不入库）
 ├── AGENTS.md                   # 本规范
-├── template/<主题>/            # 原版主题（css/js 原样保留；*.php 为参考，*.html 为 Go 模板）
+├── template/<主题>/            # 原版主题（css/js 原样保留；*.html 为 Go 模板）
 ├── assets/                     # 原版静态资源（原样保留）
 ├── site/static/                # 详情页静态资源（原样保留）
 ├── web/                        # 固定页面 Go 模板（about/apply/pwd/site/404/install 等）
@@ -29,7 +29,7 @@
 │   ├── logger/                 # 分级文件日志
 │   ├── models/                 # GORM 模型
 │   ├── database/               # 连接、迁移、种子数据
-│   ├── theme/                  # 主题发现、theme.ini、config.php 解析
+│   ├── theme/                  # 主题发现、theme.ini（含 theme_config 字段定义）解析
 │   ├── site/                   # 数据访问层（配置缓存 + 前台数据查询）
 │   ├── view/                   # 模板上下文、lists/rearr、模板缓存
 │   ├── router/                 # 路由注册
@@ -66,32 +66,32 @@
   - `<?php echo $conf['x'] ?>` → `{{ .Cfg "x" }}`；输出 HTML 用 `{{ raw (.Cfg "x") }}`
   - `theme_config('a', def)` → `{{ .ThemeCfg "a" "def" }}`
   - `while ($row = $DB->fetch(...))` → `{{ range .Groups }}` / `{{ range .Sou }}` / `{{ range .Tags }}`
-  - `include "list.php"` → `{{ template "list.html" . }}`
+  - `include "list"` → `{{ template "list.html" . }}`
 - 必须保留的模板契约：
   - `lists($html)` 的片段键 `g1/g2/g3/l1/l2/l3` 与占位符 `{group_id}/{group_name}/{group_icon}/{link_id}/{link_name}/{link_name_text}/{link_desc}/{link_url}/{link_icon}`
   - 搜索区 DOM：`#super-search-fm`、`input[name=sou]`（`value`/`data-alias`/`data-hint`）
   - 页脚必须保留 `assets/js/icon.js`、`assets/js/svg.js`
-- 主题发现：`template/*` 目录需包含 `theme.ini`（JSON）与 `index.html`；`config.php` 定义 `$theme_config`。
+- 主题发现：`template/*` 目录需包含 `theme.ini`（JSON）与 `index.html`；theme.ini 顶层 `theme_config` 数组定义字段：type/name/title/description/verify/placeholder/value/enum，value 支持 `{"$conf":"键"}` 引用站点配置，enum 为 [value,label] 二元组数组。
 - 前端 JS 逻辑不改；URL 必须与原版兼容（见 §7）。
 
-## 7. URL 兼容清单（保持原路径）
+## 7. URL 清单（无后缀新地址）
 
 | 功能 | 路径 |
 |------|------|
 | 首页 | `/` |
 | 详情页 | `/site-{id}.html` |
-| 收录申请 | `/apply/`、`/apply/index.php`、`/apply/wxplus.php` |
+| 收录申请 | `/apply/`、`/apply/wxplus` |
 | 关于 | `/about/` |
-| 访问密码 | `/pwd/`、`/include/go.php` |
-| 验证码 | `/include/validatecode.php` |
-| 图片上传 | `/include/file.php` |
-| 二维码 | `/include/qrcode.php` |
+| 访问密码 | `/pwd/`、`/include/go` |
+| 验证码 | `/include/validatecode` |
+| 图片上传 | `/include/file` |
+| 二维码 | `/include/qrcode` |
 | 站点地图 | `/sitemap.xml` |
-| Bing 壁纸 | `/assets/img/bing.php`、`/assets/img/cron.php` |
+| Bing 壁纸 | `/assets/img/bing`、`/assets/img/cron` |
 | 后台 | `/{ADMIN_PATH}/`（默认 `/admin/`） |
 | 安装向导 | `/install/` |
 
-静态资源：`/assets/*`、`/template/*`、`/site/static/*`；**必须屏蔽 `.php` 源码**（返回 404）。
+静态资源：`/assets/*`、`/template/*`、`/site/static/*`；**必须拦截 PHP 脚本文件请求**（返回 404）。
 
 ## 8. 安全规范
 
@@ -99,7 +99,7 @@
 - CSRF：写操作需校验 CSRF Token。
 - SSRF：服务端发起的 HTTP 请求须校验目标 IP，拒绝内网/保留地址。
 - 限流：对外接口（抓取、申请、推送等）使用限流。
-- **不得移植** `include/include.php` 等混淆/`eval` 代码，等价能力用 Go 重写。
+- **不得移植**原版 `include/include` 等混淆/`eval` 代码，等价能力用 Go 重写。
 - 管理员密码沿用 `md5('lylme'.明文)` 存储；会话 Cookie 使用签名。
 
 ## 9. 安装向导规范
