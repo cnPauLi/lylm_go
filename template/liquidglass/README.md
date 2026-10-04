@@ -82,7 +82,7 @@
 └─────────────────────────────────┘
 ```
 
-## 配置项（config.php）
+## 配置项（theme.ini 的 theme_config）
 
 通用项（契约保留）：
 
@@ -111,10 +111,8 @@
 
 ```
 liquidglass/
-├── index.php        # 入口：菜单栏 / 状态栏 / 组件 / 主窗口 / Dock / Spotlight / 控制中心 / 设置 / 上下文菜单
-├── theme.ini        # 主题信息（JSON）
-├── config.php       # 配置表单（含 5 项通用 + 5 项风格扩展）
-├── functions.php    # 契约函数 + theme_lg_glyph / theme_lg_battery / theme_lg_enum
+├── index.html       # 入口模板：菜单栏 / 状态栏 / 组件 / 主窗口 / Dock / Spotlight / 控制中心 / 设置 / 上下文菜单
+├── theme.ini        # 主题信息 + 配置定义（JSON，theme_config 含 5 项通用 + 5 项风格扩展）
 ├── css/style.css    # 自创令牌（--lg-*）与全部样式，含 1640px / 768px 断点
 ├── js/script.js     # ES5 脚本：搜索引擎、时钟、分组分页、Dock 放大镜、聚焦搜索、控制中心、设置、上下文菜单、抖动/碎裂、偏好持久化
 └── README.md        # 本文件
@@ -122,11 +120,11 @@ liquidglass/
 
 ## 兼容性 / 自检
 
-- **PHP**：兼容 5.4+ / 7.x / 8.x；统一 `array()`；`htmlspecialchars()` 显式传 `ENT_QUOTES, 'UTF-8'`；无 `??` / `<=>` / 类型声明 / 箭头函数 / 短数组。
+- **模板**：Go html/template；文本输出自动转义，官方 HTML（`link_name` / `sou_icon` 等）用 `raw` 原样输出。
 - **JS**：纯 ES5；无 `let`/`const`/箭头函数/模板字符串；带 localStorage try/catch；时钟、Spotlight、控制中心、设置均有「节点不存在则跳过」兼容。
 - **CSS**：使用 `backdrop-filter` + `saturate`；提供无 backdrop-filter 时的 `var(--lg-glass-solid)` 兜底（页面无 `@supports` 警告但已为不支持的环境加深玻璃底色）。
 - **图标尺寸**：`.lg-tile-glyph` 与 `.lg-engine-ico`、`.lg-page-ico`、`.lg-spot-item-glyph`、`.lg-cc-tile-ico` 同时对 `svg` 与 `img` 约束尺寸；缓存版本号取 `theme.ini.theme_version`，CSS/JS 通过 `?v=100` 缓存破坏。
-- **契约锚点**：`#search-form` / `#search-input` / `name="sou"` / `data-alias` / `data-hint` / 首个 `checked`；`lists($html)` 使用 7 个键；`#lg-clock-widget`、`#lg-clock-status`、`#lg-clock-menu`、`#lg-date-widget`、`#lg-yan`、`#lg-spot-input`、`#lg-spot-form`、`#lg-spot-results`、`#lg-blur-range`、`[data-lg-action]` 等运行时锚点。
+- **契约锚点**：`#search-form` / `#search-input` / `name="sou"` / `data-alias` / `data-hint` / 首个 `checked`；`lists()`（`.Lists`）使用 7 个键；`#lg-clock-widget`、`#lg-clock-status`、`#lg-clock-menu`、`#lg-date-widget`、`#lg-yan`、`#lg-spot-input`、`#lg-spot-form`、`#lg-spot-results`、`#lg-blur-range`、`[data-lg-action]` 等运行时锚点。
 
 ## 创新校验（自检）
 

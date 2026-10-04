@@ -96,7 +96,7 @@ function CheckForm() {
 
     if ($("#cpwd").val() == "false") {
         $.ajax({
-            url: 'index.php',
+            url: './',
             data: {
                 s: 6766,
                 dbhost: $("#dbhost").val(),
@@ -140,7 +140,7 @@ function submitWithTableCheck() {
         return;
     }
     $.ajax({
-        url: 'index.php',
+        url: './',
         data: {
             s: 'checktables',
             dbhost: $("#dbhost").val(),
@@ -177,7 +177,7 @@ function CheckPwd() {
        return; 
     }
     $.ajax({
-        url: 'index.php',
+        url: './',
         data: {
             s: 6766,
             dbhost: $("#dbhost").val(),

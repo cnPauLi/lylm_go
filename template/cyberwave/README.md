@@ -25,7 +25,7 @@
 - 全屏环境层：`cw-grid` 透视网格地平线、`cw-scan` CRT 扫描线（可关）、可选 `cw-bg` 自定义背景。
 - 移动端（≤768px）：侧栏折叠为顶部条，链接区降为 2 列；≤480px 再降为 1 列。
 
-## 三、配置项（后台 `config.php`）
+## 三、配置项（后台「主题设置」，定义于 theme.ini 的 theme_config）
 
 | 配置名 | 类型 | 说明 | 默认 |
 | --- | --- | --- | --- |
@@ -42,10 +42,8 @@
 
 ```
 cyberwave/
-├── index.php          # 入口（原创 DOM 结构，保留契约锚点）
-├── theme.ini          # 主题信息（JSON）
-├── config.php         # 主题配置表单
-├── functions.php      # 辅助函数（原样保留契约函数）
+├── index.html         # 入口模板（原创 DOM 结构，保留契约锚点）
+├── theme.ini          # 主题信息 + 配置定义（JSON）
 ├── README.md          # 本说明
 ├── css/style.css      # 原创样式（自创变量体系）
 └── js/script.js       # ES5 脚本（搜索 + 时钟）
@@ -58,11 +56,10 @@ cyberwave/
 
 ## 六、自检清单（发布前核对）
 
-- [x] `index.php` / `theme.ini` 存在；theme.ini 前六字段齐全、JSON 合法、版本三段式。
+- [x] `index.html` / `theme.ini` 存在；theme.ini 前六字段齐全、JSON 合法、版本三段式。
 - [x] 目录名 `cyberwave` 与 `theme_name` 对应。
-- [x] PHP 无 7+ 专有语法（统一 `array()`，`htmlspecialchars` 显式传 `UTF-8`）。
-- [x] 文本输出经 `theme_e()`（`link_name` / `sou_icon` 除外）。
-- [x] 保留 `$conf['wztj']` 与 `icon.js` / `svg.js` 引入。
+- [x] 模板文本输出经自动转义；官方 HTML 经 `raw` 原样输出。
+- [x] 保留 `wztj` 输出与 `icon.js` / `svg.js` 引入。
 - [x] 未依赖白名单外配置键；多选项读取已做非数组兜底。
 - [x] JS 为 ES5，无 `let/const/箭头/模板字符串`；搜索 DOM 锚点完整（`id="search-form"` / `id="search-input"` / `name="sou"` / `data-alias` / `data-hint` / 首个 `checked` / `localStorage['theme_sou']`）。
 - [x] `lists()` 接口结构完整，占位符使用正确。

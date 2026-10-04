@@ -5,7 +5,7 @@
  *   1. 搜索引擎切换：更新输入框提示，并把选择记忆到 localStorage
  *   2. 时间显示（若后台关闭该模块，对应节点不存在，脚本自动跳过）
  *
- * 搜索区的 DOM 契约（index.php 必须遵守）：
+ * 搜索区的 DOM 契约（index.html 必须遵守）：
  *   <form id="search-form">   <input id="search-input">
  *   <input type="radio" name="sou" value="接口地址" data-alias="引擎别名" data-hint="提示文字">
  *

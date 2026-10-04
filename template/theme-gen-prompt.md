@@ -13,8 +13,8 @@
 ### 核心要求（务必贯穿始终）
 
 1. **只保留「契约」代码，其余全部从零原创。**
-   你必须原样照搬的只有「二、必须保留的契约」里的内容：数据接口函数、主题信息、配置项、链接列表 `lists()` 接口、搜索区 DOM 锚点、系统配置白名单、输出安全规则、PHP/JS 兼容性硬约束。
-   **除此之外的一切——`index.php` 的 HTML 结构、class 命名、整体布局、全部 CSS、动效——都要基于风格关键词大胆重构，禁止把官方 `dev-theme` 当模板去改色或微调。**
+   你必须原样照搬的只有「二、必须保留的契约」里的内容：数据接口函数、主题信息、配置项、链接列表 `lists()` 接口、搜索区 DOM 锚点、系统配置白名单、输出安全规则、模板/JS 兼容性硬约束。
+   **除此之外的一切——`index.html` 的 HTML 结构、class 命名、整体布局、全部 CSS、动效——都要基于风格关键词大胆重构，禁止把官方 `dev-theme` 当模板去改色或微调。**
 
 2. **禁止产出"dev-theme 换色版"。**
    官方 `dev-theme` 只是「契约样本 / 参考实现」，目的是告诉你接口怎么接，**不是给你套用的视觉模板**。它的 HTML 骨架、class 命名、CSS 变量体系、配色，一律不得复用（详见「三、视觉与布局：大胆原创」中的禁止清单）。
@@ -22,7 +22,7 @@
 3. **大胆、具体、有辨识度。**
    优先做"一眼就能看出是什么风格"的设计，而不是安全的居中卡片网格。布局原型、配色体系、字体气质、点缀元素都要从关键词里长出来，而不是从 dev-theme 里改出来。
 
-4. 输出下列 7 个文件（目录名用小写英文，例如 `moonlight`）。
+4. 输出下列 6 个文件（目录名用小写英文，例如 `moonlight`）。
 
 ---
 
@@ -52,27 +52,21 @@
 > 它们只负责"数据与接口"，与"视觉长什么样"完全无关——视觉在第三节另起炉灶。
 
 ### 2.1 程序环境与兼容性
-- 目标程序：**六零导航页 v1.2.5 及以上**。
-- **PHP 必须兼容 5.4+ / 7.x / 8.x**。强制规则：
-  - 一律使用 `array()` 语法，**禁止短数组 `[]`**。
-  - **禁止** PHP 7+ 专有语法：`??` 空合并、`<=>` 太空船、返回值/参数类型声明、`declare(strict_types=1)`、匿名类 `new class`、短 list 解构 `[$a,$b]`、箭头函数 `fn()=>`。
-  - `htmlspecialchars()` **必须**显式传字符集：`htmlspecialchars($v, ENT_QUOTES, 'UTF-8')`。
-  - 不要依赖 PHP 7+ 新增函数（如 `random_bytes()`），如必须用先 `function_exists()` 判断。
+- 目标程序：**六零导航页 v1.2.5 及以上**（Go 版，模板引擎为 Go html/template）。
+- **模板统一使用 Go 模板语法**：数据输出默认自动 HTML 转义；需要原样输出官方 HTML 时必须显式使用 `raw` 函数。
 - **JS 必须 ES5**：用 `var` / `function`，**禁止** `let` / `const` / 箭头函数 / 模板字符串（反引号）。
 - 新版 CSS 特性要有降级方案（如 `:has()` 需改为兄弟选择器）。
 
 ### 2.2 设计原则（仅约束"工程形态"，不约束视觉）
-- **单文件入口、零框架、轻量**。页面结构全部写在 `index.php` 内，用注释分区，不必拆文件。
+- **单文件入口、零框架、轻量**。页面结构全部写在 `index.html` 内，用注释分区，不必拆文件。
 - 静态资源唯一入口：`css/style.css`、`js/script.js`。
-- 换肤通过 `:root` CSS 变量实现（**变量名你自己定义，不要照抄 dev-theme**）；后台可配项用 `config.php` 暴露。
+- 换肤通过 `:root` CSS 变量实现（**变量名你自己定义，不要照抄 dev-theme**）；后台可配项用 `theme.ini` 的 `theme_config` 暴露。
 
 ### 2.3 必须输出的文件与目录
 ```
 你的主题目录名/                # 小写英文，与 theme_name 对应
-├── index.php                 # 入口（必须）
-├── theme.ini                 # 主题信息（必须，JSON）
-├── config.php                # 主题自定义配置表单（建议）
-├── functions.php             # 辅助函数库（必须，见 2.5）
+├── index.html                # 入口模板（必须）
+├── theme.ini                 # 主题信息 + 自定义配置定义（必须，JSON）
 ├── README.md                 # 主题说明（建议）
 ├── css/style.css             # 样式（必须，唯一入口）
 └── js/script.js              # 脚本（必须，唯一入口）
@@ -93,148 +87,81 @@
     "theme_course": "主题文档(https://spage.lylme.com/doc/lylmelight)"
 }
 ```
-- `theme_version` 三段式（`1.0.0`），改动静态资源后 +1 即可刷新缓存（函数自动拼 `?v=`）。
-- 不支持 HTML 标签。
+- `theme_version` 三段式（`1.0.0`），改动静态资源后 +1 即可刷新缓存（`.CSS`/`.JS` 自动拼 `?v=`）。
+- 顶层键 `theme_config` 定义后台配置表单（见 2.11）。
+- 说明类字段不支持 HTML 标签。
 
-### 2.5 functions.php（必须原样包含以下函数，可在此基础上扩展，新增函数一律 `theme_` 前缀）
-```php
-<?php
-function theme_version() {
-    static $version = null;
-    if ($version === null) {
-        $ini = @file_get_contents(__DIR__ . '/theme.ini');
-        $info = is_string($ini) ? json_decode($ini, true) : array();
-        $raw = (is_array($info) && isset($info['theme_version'])) ? $info['theme_version'] : '1.0.0';
-        $version = preg_replace('/[^a-zA-Z0-9]/', '', $raw);
-        if ($version === '') { $version = '100'; }
-    }
-    return $version;
-}
-function theme_css($path = 'css/style.css') {
-    global $templatepath;
-    $href = rtrim($templatepath, '/') . '/' . ltrim($path, '/') . '?v=' . theme_version();
-    echo '<link rel="stylesheet" href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '">' . "\n";
-}
-function theme_js($path = 'js/script.js') {
-    global $templatepath;
-    $src = rtrim($templatepath, '/') . '/' . ltrim($path, '/') . '?v=' . theme_version();
-    echo '<script defer src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '"></script>' . "\n";
-}
-function theme_e($value) {
-    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
-}
-function theme_tags() {
-    global $site, $DB;
-    $tags = array();
-    $result = $site->getTags();
-    while ($row = $DB->fetch($result)) {
-        $tags[] = array(
-            'id'    => $row['tag_id'],
-            'name'  => $row['tag_name'],
-            'link'  => $row['tag_link'],
-            'blank' => ((int) $row['tag_target'] === 1),
-        );
-    }
-    return $tags;
-}
-function theme_sou() {
-    global $site, $DB;
-    $list = array();
-    $result = $site->getSou();
-    while ($row = $DB->fetch($result)) {
-        if ((int) $row['sou_st'] !== 1) { continue; }
-        $link = $row['sou_link'];
-        if (checkmobile() && !empty($row['sou_waplink'])) { $link = $row['sou_waplink']; }
-        $list[] = array(
-            'alias' => $row['sou_alias'], 'name' => $row['sou_name'],
-            'hint'  => $row['sou_hint'],  'icon' => $row['sou_icon'],
-            'color' => $row['sou_color'], 'link' => $link,
-        );
-    }
-    return $list;
-}
-function theme_icp() {
-    $icp = isset($GLOBALS['conf']['icp']) ? trim((string) $GLOBALS['conf']['icp']) : '';
-    if ($icp === '') { return; }
-    echo '<a class="icp" href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener">'
-        . theme_e($icp) . '</a>' . "\n";
-}
-function theme_security_filing($record = 'gonganbei') {
-    $record = trim((string) theme_config($record, ''));
-    if ($record === '') { return; }
-    preg_match_all('/\d+/', $record, $gab);
-    $code = isset($gab[0][0]) ? $gab[0][0] : '';
-    echo '<a class="gonganbei" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode='
-        . theme_e($code) . '" target="_blank" rel="nofollow noopener">'
-        . theme_e($record) . '</a>' . "\n";
-}
-```
+### 2.5 内置模板函数（等价原版主题的 theme_* 契约函数，核心已内置，直接调用）
+| 函数 | 作用 |
+| ---- | ---- |
+| `{{ .ThemeVersion }}` | 读取 theme.ini 的版本号（去除非字母数字，`1.0.0` → `100`） |
+| `{{ .CSS "css/style.css" }}` | 输出 `<link>` 标签，自动附加 `?v=版本号` |
+| `{{ .JS "js/script.js" }}` | 输出 `<script defer>` 标签，自动附加版本号 |
+| `{{ .Cfg "键名" }}` | 读取站点配置（自动 HTML 转义，等价 `theme_e`） |
+| `{{ raw (.Cfg "copyright") }}` | 官方 HTML 原样输出（等价跳过 `theme_e`） |
+| `{{ .ThemeCfg "name" "默认值" }}` | 读取主题自定义配置（自动转义） |
+| `{{ range .Tags }}` | 导航菜单数组：`.TagID` `.TagName` `.TagLink` `.TagTarget` |
+| `{{ range .Sou }}` | 搜索引擎数组：`.Alias` `.Name` `.Hint` `.Icon` `.Color` `.Link`（`link` 已按 PC / 手机自动解析） |
+| `{{ .ICP }}` | 输出 ICP 备案链接（读 `icp`），留空不输出 |
+| `{{ .Gonganbei }}` | 输出公安备案链接（读主题配置 `gonganbei`，自动提取数字拼查询地址），留空不输出 |
+| `{{ .BackgroundImg }}` | 当前设备背景图地址（PC / 手机自适应） |
+| `{{ .Yan }}` | 随机一言内容 |
+| `{{ if .IsMobile }}` | 是否为手机访问 |
+| `{{ .Lists (dict ...) }}` | 渲染分组与链接列表（见 2.7） |
 
-### 2.6 index.php 入口契约（只管"接口与必引入项"，不管视觉骨架）
-> 下面给出**最小必要骨架**：`require` 函数库、必引入的 css/js、统计代码、图标雪碧图必须原样保留。
+> 核心不加载主题内自定义代码文件；如需扩展逻辑，请在模板内用 Go 模板语法实现，或依赖 JS 完成。
+> 文本输出由模板引擎自动转义（等价 `theme_e`），**例外**：`{link_name}`、`sou_icon` 等官方 HTML 用 `raw` 原样输出。
+
+### 2.6 index.html 入口契约（只管"接口与必引入项"，不管视觉骨架）
+> 下面给出**最小必要骨架**：必引入的 css/js、统计代码、图标雪碧图必须原样保留。
 > 中间的导航 / 搜索 / 列表区域，**结构、class、排布全部由你原创**（见第三节），不要在 dev-theme 的 `.site-header` / `.site-main` / `.links` 骨架上改。
 
-```php
-<?php
-require_once __DIR__ . '/functions.php';
-
-// 逻辑区（条件渲染集中处理，输出到变量）
-$background_url = background();
-$theme_color = theme_config('color', '#2f6fed');
-$link_cols   = theme_config('link_cols', 4);
-$notice      = trim((string) theme_config('notice', ''));
-$modules     = theme_config('modules', array('clock'));
-if (!is_array($modules)) { $modules = array($modules); }
-?>
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php echo theme_e($conf['title']); ?></title>
-    <meta name="keywords" content="<?php echo theme_e($conf['keywords']); ?>">
-    <meta name="description" content="<?php echo theme_e($conf['description']); ?>">
-    <link rel="icon" href="<?php echo theme_e($conf['logo']); ?>">
-    <?php theme_css('css/style.css'); ?>
-    <?php theme_js('js/script.js'); ?>
+    <title>{{ .Cfg "title" }}</title>
+    <meta name="keywords" content="{{ .Cfg "keywords" }}">
+    <meta name="description" content="{{ .Cfg "description" }}">
+    <link rel="icon" href="{{ .Cfg "logo" }}">
+    {{ .CSS "css/style.css" }}
+    {{ .JS "js/script.js" }}
 </head>
-<body class="<?php echo checkmobile() ? 'is-mobile' : 'is-pc'; ?>">
-    <!-- 导航：foreach (theme_tags() as $tag) —— 结构与 class 自定 -->
-    <!-- 模块：时钟(in_array('clock',$modules))、随机一言($conf['yan']=='true' 时 yan()) -->
-    <!-- 注意：yan() 返回字符串，需 <?php echo yan(); ?> 输出，并非自输出；background() 同理返回背景图地址，需接收后 echo -->
+<body class="{{ if .IsMobile }}is-mobile{{ else }}is-pc{{ end }}">
+    <!-- 导航：range .Tags —— 结构与 class 自定 -->
+    <!-- 模块：时钟(if .HasModule "clock")、随机一言(eq (.Cfg "yan") "true" 时 .Yan) -->
+    <!-- 注意：.Yan 返回字符串，需 {{ .Yan }} 输出；.BackgroundImg 返回背景图地址，需接收后使用 -->
     <!-- 搜索区：见 2.8 DOM 锚点契约 -->
     <!-- 链接列表：见 2.7 lists() 接口 -->
     <footer>
-        <?php echo $conf['copyright']; ?>
-        <?php theme_icp(); ?>
-        <?php theme_security_filing(); ?>
+        {{ raw (.Cfg "copyright") }}
+        {{ .ICP }}
+        {{ .Gonganbei }}
     </footer>
 
-    <?php echo $conf['wztj']; ?>   <!-- 必须：统计代码，原样输出在最底部 -->
-    <script src="<?php echo $cdnpublic; ?>/assets/js/icon.js"></script>  <!-- 必须：图标雪碧图，删除后图标全空白 -->
-    <script src="<?php echo $cdnpublic; ?>/assets/js/svg.js"></script>  <!-- 必须：旧版图标雪碧图，删除后图标全空白 -->
+    {{ raw (.Cfg "wztj") }}   <!-- 必须：统计代码，原样输出在最底部 -->
+    <script src="{{ .Cdn }}/assets/js/icon.js"></script>  <!-- 必须：图标雪碧图，删除后图标全空白 -->
+    <script src="{{ .Cdn }}/assets/js/svg.js"></script>  <!-- 必须：旧版图标雪碧图，删除后图标全空白 -->
 </body>
 </html>
 ```
 
-### 2.7 链接列表接口 `lists($html)`
+### 2.7 链接列表接口 `lists($html)` → `{{ .Lists (dict ...) }}`
 - 仅以下键：`g1`分组开始 / `g2`分组内容 / `g3`分组结束 / `l1`链接开始 / `l2`链接内容 / `l3`链接结束。
 - 可用占位符：`{group_id}` `{group_name}` `{group_icon}`；`{link_id}` `{link_name}`(可能含`<font>`色标，原样输出不转义) `{link_name_text}`(纯文本) `{link_url}` `{link_icon}`(缺失自动补默认) `{link_desc}`。
 - **图标是官方注入元素（必读）**：`{group_icon}` / `{link_icon}` 以及 §2.8 的 `sou_icon` 都由页面底部 `icon.js`/`svg.js` 注入为**行内 `<svg>` 或 `<img>`**（不是 `<i class="iconfont">` 字体图标），默认无尺寸约束会渲染得很大。**必须**在你的 `style.css` 里显式限制尺寸，且要**同时覆盖 `svg` 和 `img`**，否则选择器命中不到、改了也没效果。详见 §3.6。
 - **注意**：下面 `l1/l2/g2` 里的 class 名（如 `link-item` `link-icon`）只是占位示例，**你必须替换成自己的原创命名**，并在自己的 `style.css` 里写对应的原创样式。不要原样照抄这一套 class。
 
-```php
-<?php
-$html = array(
-  'g1' => '<YOUR_OWN_GROUP_WRAPPER>',
-  'g2' => '<YOUR_OWN_GROUP_TITLE>{group_icon}<span>{group_name}</span></YOUR_OWN_GROUP_TITLE>',
-  'g3' => '</YOUR_OWN_GROUP_WRAPPER>',
-  'l1' => '<a class="YOUR_OWN_LINK" href="{link_url}" target="_blank" rel="nofollow noopener" title="{link_name_text}">',
-  'l2' => '<span class="YOUR_OWN_ICON">{link_icon}</span><span class="YOUR_OWN_NAME">{link_name}</span>',
-  'l3' => '</a>',
-);
-lists($html);
-?>
+```html
+{{ .Lists (dict
+    "g1" `<YOUR_OWN_GROUP_WRAPPER>`
+    "g2" `<YOUR_OWN_GROUP_TITLE>{group_icon}<span>{group_name}</span></YOUR_OWN_GROUP_TITLE>`
+    "g3" `</YOUR_OWN_GROUP_WRAPPER>`
+    "l1" `<a class="YOUR_OWN_LINK" href="{link_url}" target="_blank" rel="nofollow noopener" title="{link_name_text}">`
+    "l2" `<span class="YOUR_OWN_ICON">{link_icon}</span><span class="YOUR_OWN_NAME">{link_name}</span>`
+    "l3" `</a>`) }}
 ```
 
 ### 2.8 搜索区 DOM 锚点契约（JS 依赖，只保这些"锚点"，外观与排布随意）
@@ -247,34 +174,52 @@ lists($html);
     <button type="submit">搜索</button>
 </form>
 <div class="YOUR_OWN_ENGINE_LIST">
+    {{ range $index, $sou := .Sou }}
   <!-- 每个引擎：radio name="sou"，value=接口地址，data-alias=别名，data-hint=提示；首个 checked -->
-  <label style="--engine-color: <?php echo theme_e($sou['color']); ?>;">
-    <input type="radio" name="sou" value="<?php echo theme_e($sou['link']); ?>"
-           data-alias="<?php echo theme_e($sou['alias']); ?>" data-hint="<?php echo theme_e($sou['hint']); ?>"
-           <?php echo $index === 0 ? 'checked' : ''; ?>>
-    <?php echo $sou['icon'] . "\n"; ?>
-    <span><?php echo theme_e($sou['name']); ?></span>
+  <label style="--engine-color: {{ $sou.Color }};">
+    <input type="radio" name="sou" value="{{ $sou.Link }}"
+           data-alias="{{ $sou.Alias }}" data-hint="{{ $sou.Hint }}"
+           {{ if eq $index 0 }}checked{{ end }}>
+    {{ raw $sou.Icon }}
+    <span>{{ $sou.Name }}</span>
   </label>
+    {{ end }}
 </div>
 ```
 - 提交由 JS 拦截：拼接 `接口地址 + encodeURIComponent(关键词)` 新窗口打开（各引擎参数名不统一）。
 - 选择记忆写入 `localStorage['theme_sou']`（键全站统一，换主题保留）。
 - JS 用 ES5 实现：切换引擎更新 placeholder + 记忆；载入时恢复；提交时拼接跳转；时间显示模块需做「节点不存在则跳过」的兼容。
 
-### 2.9 系统配置白名单（只可用这些 `$conf` 键）
-`title` `keywords` `description` `logo` `background`/`wap_background`(用 `background()` 自适应) `copyright`(HTML原样) `wztj`(HTML/JS，原样) `icp` `yan`(判断用 `=='true'`) `tq`(天气开关，主题自决) `template`/`version`/`cdnpublic`(系统项)。
+### 2.9 系统配置白名单（只可用这些 `.Cfg` 键）
+`title` `keywords` `description` `logo` `background`/`wap_background`(用 `.BackgroundImg` 自适应) `copyright`(HTML，`raw` 原样) `wztj`(HTML/JS，`raw` 原样) `icp`(用 `.ICP`) `yan`(判断用 `eq ... "true"`) `tq`(天气开关，主题自决) `template`/`version`/`cdnpublic`(系统项，CDN 地址用 `.Cdn`)。
 **不要依赖**：`apply` `about` `home-title` `admin_user` `admin_pwd` `wxplus` 等。
-> 注意：`$conf['version']` 形如 `v2.6.0`（带 v），**不能**用作缓存版本；缓存版本取 `theme.ini` 的 `theme_version`。
+> 注意：`version` 形如 `v2.6.0`（带 v），**不能**用作缓存版本；缓存版本取 `theme.ini` 的 `theme_version`（`.ThemeVersion`）。
 
 ### 2.10 安全与输出规则
-- **所有文本输出经 `theme_e()`**；例外：`{link_name}`、`sou_icon`（官方 HTML，原样输出）。
-- 多选项（checkbox）读取做类型兜底（全不选时核心给空数组，主题侧仍 `if(!is_array($modules)) $modules=array($modules);`）。
-- 导航/引擎/图标等循环输出必须正确转义。
+- **所有文本输出由模板引擎自动转义（等价 `theme_e`）**；例外：`{link_name}`、`sou_icon`（官方 HTML，用 `raw` 原样输出）。
+- 多选项（checkbox）读取做空值兜底（全不选时核心给空数组，主题侧仍需判断空值）。
+- 导航/引擎/图标等循环输出由模板引擎自动转义。
 
-### 2.11 config.php 配置表单
-- 返回 PHP 数组 `$theme_config`，元素含：`type`(text/textarea/select/checkbox/radio/color，开关建议用 radio 替代 switch)、`name`(主题内唯一，无需前缀)、`title`、`description`、`value`、`enum`(键值对)、`verify`(required/url/number/email)。
+### 2.11 theme.ini 的 `theme_config` 配置表单
+- `theme_config` 为 JSON 数组，每个元素含：`type`(text/textarea/select/checkbox/radio/color，开关建议用 radio 替代 switch)、`name`(主题内唯一，无需前缀)、`title`、`description`、`value`、`enum`(二维字符串数组 `[["值","显示文本"],...]`)、`verify`(required/url/number/email)。
+- `value` 支持：字符串（数字也写成字符串）、字符串数组（多选默认值）、或对象 `{"$conf": "站点配置键"}`（解析期代入站点配置的值，键不存在得空串）。
 - **必须保留**通用配置（可改默认值以贴合风格）：主色 `color`(color)、列表列数 `link_cols`(select 3~6)、首页模块 `modules`(checkbox，含 clock)、首页公告 `notice`(textarea，支持HTML)、公安备案号 `gonganbei`(text)。
 - 可按风格增删配置（如：圆角大小、卡片透明度、是否毛玻璃、强调色、背景模糊度、字体族等），增强可玩性。
+
+```json
+{
+    "theme_config": [
+        {"type": "color", "name": "color", "title": "主题主色", "description": "用于搜索按钮、链接悬停等主色调", "value": "#2f6fed"},
+        {"type": "select", "name": "link_cols", "title": "列表列数", "description": "每行显示的链接数量", "value": "4",
+         "enum": [["3", "3 列"], ["4", "4 列"], ["5", "5 列"], ["6", "6 列"]]},
+        {"type": "checkbox", "name": "modules", "title": "首页显示模块", "description": "可多选", "value": ["clock"],
+         "enum": [["clock", "时间显示"]]},
+        {"type": "textarea", "name": "notice", "title": "首页公告", "description": "显示在搜索框下方，支持HTML代码", "value": ""},
+        {"type": "text", "name": "gonganbei", "title": "公安备案号", "description": "留空不显示", "value": "",
+         "placeholder": "京公安网备xxxxxxxxxx号"}
+    ]
+}
+```
 
 ---
 
@@ -294,7 +239,7 @@ lists($html);
 - **全屏英雄居中**：时钟/一言作视觉主体占满首屏，搜索框悬浮中央，链接区在下方可滚。
 - **左侧固定侧栏**：导航与品牌固定在左侧竖向栏，右侧为可滚动的内容画布（移动端折叠为顶部条）。
 - **横向滑动分类**：每个分组是一行可横向滑动的卡片，整页纵向排布"轨道"。
-- **分屏双栏**：左半是信息/时钟/搜索的"控制台"，右半是链接瀑布；或大图背景 + 前景浮层。
+- **分屏双栏**：左半是信息/时钟/搜索的"控制台"，右半为链接瀑布；或大图背景 + 前景浮层。
 - **不规则网格 / 瀑布流**：卡片尺寸、跨列、错位随内容变化，拒绝整齐方格。
 - **杂志 / 编辑风**：超大衬线标题、分栏排版、首字下沉、留白即设计。
 - **终端 / CLI 风**：等宽字体、`$`、`>` 提示符、块光标闪烁、纯文本质感。
@@ -311,7 +256,7 @@ lists($html);
 ### 3.3 配色与视觉语言
 - 配色必须**从关键词推导**，形成有逻辑的色板（主色 / 背景 / 文字 / 强调 / 阴影或辉光），而不是只改一个 `--theme-color`。
 - 暗色 / 亮色 / 跟随系统由风格决定；如做双主题，用自己命名的变量组切换。
-- 字体气质要与风格一致（圆润→儿童/治愈；纤细无衬线→极简/科技；衬线→杂志/复古；等宽→终端；像素字体→像素风）。优先用系统字体栈与 `background()` 背景图，**不要引入外部字体 CDN 依赖**（保持零框架、可离线）。
+- 字体气质要与风格一致（圆润→儿童/治愈；纤细无衬线→极简/科技；衬线→杂志/复古；等宽→终端；像素字体→像素风）。优先用系统字体栈与 `.BackgroundImg` 背景图，**不要引入外部字体 CDN 依赖**（保持零框架、可离线）。
 
 ### 3.4 CSS 必须原创
 - 自己写 `:root` 变量体系、自己命名 class、自己写每一处样式。**不要从 dev-theme 的 style.css 复制任何规则再调参数。**
@@ -341,8 +286,8 @@ lists($html);
 ### 3.8 搜索引擎联想词与站内搜索列表（建议增强）
 
 > 这两项都是**建议增强**（强烈建议实现，而非可选点缀），系统核心**并未提供**联想词接口或站内搜索端点：
-> - `lylme_sou` 表只存了 `sou_link` / `sou_waplink`（搜索跳转地址），**没有**联想词 API 字段；
-> - 站内链接集中在 `lylme_links` 表（字段：`name` `url` `icon` `link_desc` `link_keywords` `link_status` `link_pwd`），需主题自行查询。
+> - 搜索引擎表只存了 `sou_link` / `sou_waplink`（搜索跳转地址），**没有**联想词 API 字段；
+> - 站内链接数据可通过模板函数 `{{ .ListJSON }}` 获取结构化 JSON（字段：`title` `url` `icon` 等），主题 JS 自行检索。
 > 二者与 §3.7 的 A/B/C **引擎选择形态正交**——无论选哪种形态，都可叠加下面两类增强。实现时同样遵循 §2 的契约与 §3.1 的禁止清单（下拉浮层、结果列表一律用你自己的 class，禁止复用 `search-*` 等 dev-theme 命名）。
 
 #### 3.8.1 搜索引擎联想词（Suggestions / 自动补全）
@@ -362,7 +307,7 @@ lists($html);
   `https://www.google.com/complete/search?client=firefox&q=关键词`
   返回 `["关键词",["词1",...]]`（仅当用户在风格输入区**明确指定**时才启用）。
 
-**与引擎联动**：默认情况下联想词**与所选搜索引擎无关**，统一调用百度联想（仅作输入补全，最终提交仍按 §2.8 的引擎 `value` 跳转）。仅当用户在风格输入区**明确指定**"某引擎使用其自有联想源"时，才在 `js/script.js` 里维护一个按 `data-alias` 映射的表（例如 `var SUG_API = { baidu: 'https://suggestion.baidu.com/su?wd=%s&cb=%s', bing: 'https://api.bing.com/osjson.aspx?query=%s' };`），当前引擎 `data-alias` 命中时启用对应源，未命中则回退到百度。也可在 `config.php` 增加「联想词开关 + 自定义 API 模板」配置项增强可玩性（变量命名贴合你的主题）。
+**与引擎联动**：默认情况下联想词**与所选搜索引擎无关**，统一调用百度联想（仅作输入补全，最终提交仍按 §2.8 的引擎 `value` 跳转）。仅当用户在风格输入区**明确指定**"某引擎使用其自有联想源"时，才在 `js/script.js` 里维护一个按 `data-alias` 映射的表（例如 `var SUG_API = { baidu: 'https://suggestion.baidu.com/su?wd=%s&cb=%s', bing: 'https://api.bing.com/osjson.aspx?query=%s' };`），当前引擎 `data-alias` 命中时启用对应源，未命中则回退到百度。也可在 `theme.ini` 的 `theme_config` 增加「联想词开关 + 自定义 API 模板」配置项增强可玩性（变量命名贴合你的主题）。
 
 **ES5 实现要点（全部原生，无 fetch/let/const/箭头/Promise）**：
 1. **输入防抖**：监听 `input` 事件，约 200–300ms 后才请求，避免高频打接口。
@@ -384,38 +329,14 @@ lists($html);
 **用途**：在站内检索导航页**自己收录的链接**（而非联网搜索），输入时实时过滤，或提交后在浮层/结果区列出匹配项。
 
 **方案 A — 客户端过滤（推荐，零后端）**
-- 若主题已用 `.lg-tile` 渲染链接（§2.7 的 `l1`），**直接遍历 `.lg-tile` 即可**，读取其已有子节点 `.lg-tile-name`（名称）、`.lg-tile-desc`（描述）、`.lg-tile-glyph`（图标 HTML）以及 `getAttribute('href')`（链接），**无需在 `l1/l2` 里额外补 `data-*` 属性**。Icon 色相等可取该瓦片自身的 `--lg-h` 自定义属性（如 `style.getPropertyValue('--lg-h')`）以保持一致。
+- 若主题已用链接瓦片渲染列表（§2.7 的 `l1`），**直接遍历瓦片节点即可**，读取其子节点里的名称、描述、图标 HTML 以及 `getAttribute('href')`（链接），**无需在 `l1/l2` 里额外补 `data-*` 属性**。
+- 也可在模板中输出 `{{ .ListJSON }}`（结构化链接 JSON，字段含 `title` `url` `icon`），供 JS 全量检索。
 - 用户输入时，对 `name` / `desc` / `url` 三者做 `toLowerCase()` + `indexOf` 包含匹配，把命中的链接渲染进一个**自定义结果浮层 / 列表**（你的 class）。
-- 优点：纯前端、离线可用、无数据库压力；缺点：只能匹配**已渲染**的链接（分页 / 懒加载场景需配合方案 B）。
+- 优点：纯前端、离线可用、无数据库压力；缺点：只能匹配**已渲染**的链接（分页 / 懒加载场景需配合数据兜底）。
 
 > 💡 **推荐：把「站内结果」与「联想词」合并进同一下拉**：二者数据源不同（站内来自本地 DOM，联想来自外部 API），但都是"输入时的补全建议"。最自然的做法是主搜索框下拉同时包含两组，并用分组头区分——例如先排「站内搜索」命中（最多 5 条，点击在新标签直达该链接），再排「搜索建议」联想词（最多 10 条，点击回填并按当前引擎 `value` 提交）。合并时 `items` 用对象数组区分类型（`{type:'site',...}` / `{type:'suggest',text}`），渲染时按类型插入分组头，**避免**把它们做成两套互相打架的浮层。
 
-**方案 B — 服务端查询（覆盖全量）**
-- 在 `functions.php` 新增 `theme_search_links($kw)`（`theme_` 前缀，加 `function_exists()` 守卫避免重复定义），用全局 `$DB` 查 `lylme_links`：
-  ```php
-  function theme_search_links($kw) {
-      global $DB;
-      $kw = trim((string) $kw);
-      if ($kw === '') { return array(); }
-      $esc = $DB->escape($kw);                 // 必须用 escape 转义，杜绝注入
-      $like = "'%" . $esc . "%'";
-      $sql = "SELECT `name`,`url`,`icon`,`link_desc` FROM `lylme_links` "
-           . "WHERE `link_status` = 1 AND `link_pwd` = 0 "
-           . "AND (`name` LIKE " . $like . " OR `url` LIKE " . $like
-           . " OR `link_desc` LIKE " . $like . " OR `link_keywords` LIKE " . $like . ") "
-           . "ORDER BY `link_order` ASC LIMIT 20";
-      $out = array();
-      $res = $DB->query($sql);
-      while ($row = $DB->fetch($res)) {
-          $out[] = $row;
-      }
-      return $out;
-  }
-  ```
-  > 说明：`link_pwd != 0` 为加密组，默认不对外暴露；若你的主题需要支持加密组，按系统会话逻辑自行补齐。`$DB->escape()` 已在核心提供，不要自己拼 `addslashes` 或裸拼 SQL。
-- 触发方式（保持 ES5、无 fetch）：在 `index.php` 顶部读取 `$_GET['s']`，有值时调用 `theme_search_links()` 渲染一个**站内结果区**（你的 class，独立于 `lists()` 输出）；搜索框可额外加一个「搜本站」模式（例如 `name="scope"` 的 radio 或按钮），选「站内」时 `form` 改为 `action="?s="` 的 GET 提交（拦截后用 `window.location` 跳转或同步提交），避免与联网搜索冲突。
-
-**结果展示约束**：站内结果列表的配色、圆角、卡片/浮层样式必须与主题视觉一致；图标仍须按 §3.6 同时约束 `svg` 与 `img` 尺寸；所有文本经 `theme_e()` 输出。
+**结果展示约束**：站内结果列表的配色、圆角、卡片/浮层样式必须与主题视觉一致；图标仍须按 §3.6 同时约束 `svg` 与 `img` 尺寸；动态渲染文本时用 `textContent` 赋值避免 XSS。
 
 #### 3.8.3 统一设计约束（收口）
 
@@ -425,7 +346,7 @@ lists($html);
   - 若选 **C（折叠面板）**：面板弹出动效在 `js/script.js` 内实现，且**不能影响**功能区域布局（用 `position: fixed/absolute` 浮层，而非挤压文档流）。
 - **无依赖**：两项增强都不引入框架或外部 CDN（保持零框架、可离线）；JS 必须 ES5。
 - **性能与降级**：联想词必须防抖、请求失败静默降级（隐藏浮层即可）；列表渲染量过大时做截断（如最多 20 条）并支持滚动。
-- **安全**：站内搜索关键词**必须**经 `$DB->escape()`；联想 API 的回调名用白名单/随机化避免 XSS；所有渲染文本经 `theme_e()`（`{link_name}` / `sou_icon` 等官方 HTML 除外）。
+- **安全**：联想 API 的回调名用白名单/随机化避免 XSS；动态插入的站内结果用 `textContent` / 受控的 DOM 构建渲染。
 
 #### 3.8.4 AI 实现避坑清单（来自真实踩坑）
 
@@ -440,25 +361,23 @@ lists($html);
 
 1. 解析「一、风格输入区」→ 选定语义布局原型（来自第三节），形成一整套**原创**视觉规范（配色、间距、圆角/质感、字体、动效）。
 2. 确定目录名（小写英文）与 `theme_name`，写 `theme.ini`（用 2.4）。
-3. 复制 2.5 的 `functions.php`，按需扩展（保持 `theme_` 前缀与 `function_exists()` 守卫，**不要重复定义**核心已有函数）。
-4. 写 `config.php`：保留 2.11 通用项，按风格增删（变量命名贴合你的主题）。
-5. **写 `index.php`：抛弃 dev-theme 骨架，按你选的布局原型原创 DOM 结构与 class；只保留 2.6 的入口契约与必引入项、2.7/2.8 的接口锚点。**
-6. **写 `css/style.css`：从零原创，定义自己的变量体系与全部样式，实现你选的布局原型与风格视觉；含 768px 移动端适配（版式自定）。**
-7. 写 `js/script.js`：ES5，保留搜索切换/记忆/提交 + 时钟（DOM 锚点同 2.8），可叠加风格化动效；做"节点不存在则跳过"兼容。
-8. 写 `README.md`：含风格说明、**采用的布局原型**、配置项说明、演示地址、适用版本、自检清单。
-9. 自查（见第五节），特别核对「是否仍长得像 dev-theme」。
+3. 在 `theme.ini` 写 `theme_config` 配置表单：保留 2.11 通用项，按风格增删（变量命名贴合你的主题）。
+4. **写 `index.html`：抛弃 dev-theme 骨架，按你选的布局原型原创 DOM 结构与 class；只保留 2.6 的入口契约与必引入项、2.7/2.8 的接口锚点。**
+5. **写 `css/style.css`：从零原创，定义自己的变量体系与全部样式，实现你选的布局原型与风格视觉；含 768px 移动端适配（版式自定）。**
+6. 写 `js/script.js`：ES5，保留搜索切换/记忆/提交 + 时钟（DOM 锚点同 2.8），可叠加风格化动效；做"节点不存在则跳过"兼容。
+7. 写 `README.md`：含风格说明、**采用的布局原型**、配置项说明、演示地址、适用版本、自检清单。
+8. 自查（见第五节），特别核对「是否仍长得像 dev-theme」。
 
 ---
 
 ## 五、发布自检清单（生成后逐条核对）
 
-- [ ] `index.php` / `theme.ini` 存在；theme.ini 前六字段齐全、JSON 合法、版本三段式。
+- [ ] `index.html` / `theme.ini` 存在；theme.ini 前六字段齐全、JSON 合法、版本三段式；`theme_config` 可被解析。
 - [ ] 目录名与 `theme_name` 对应。
-- [ ] PHP 无 7+ 专有语法（PHP 5.4 可解析）；统一 `array()`。
-- [ ] 所有文本输出经 `theme_e()`（`link_name`/`sou_icon` 除外）。
-- [ ] 保留 `$conf['wztj']` 与 `icon.js`/`svg.js` 引入。
+- [ ] 模板文本输出经自动转义，官方 HTML（`link_name`/`sou_icon`/`copyright`/`wztj`）经 `raw` 原样输出。
+- [ ] 保留 `wztj` 输出与 `icon.js`/`svg.js` 引入。
 - [ ] 未依赖白名单外配置键。
-- [ ] 多选项读取已做非数组兜底。
+- [ ] 多选项读取已做空值兜底。
 - [ ] JS 为 ES5，无 `let/const/箭头/模板字符串`；搜索 DOM 锚点（id/form/input/name="sou"/data-alias/data-hint）完整。
 - [ ] `lists()` 接口结构完整；占位符使用正确。
 - [ ] 768px 断点下排版正常、不溢出。
@@ -472,4 +391,4 @@ lists($html);
 
 ## 六、输出格式要求
 
-请一次性给出全部 7 个文件的**完整代码**（不要省略、不要写「此处省略」），并在开头用 3-5 句话概述你基于用户输入所做的风格设定、采用的**布局原型**、以及默认补全项。若用户输入的风格信息不足，明确说明你采用的默认设定与选型理由。
+请一次性给出全部 6 个文件的**完整代码**（不要省略、不要写「此处省略」），并在开头用 3-5 句话概述你基于用户输入所做的风格设定、采用的**布局原型**、以及默认补全项。若用户输入的风格信息不足，明确说明你采用的默认设定与选型理由。
