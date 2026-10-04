@@ -36,20 +36,27 @@ func containsInt(list []int, v int) bool {
 	return false
 }
 
-// siteURL 依据请求推导站点根地址 scheme://host（优先 X-Forwarded-Proto）
+// siteURL 依据请求推导站点根地址 scheme://host。
+// 反向代理场景优先使用 X-Forwarded-Proto / X-Forwarded-Host，确保使用当前访问域名。
 func siteURL(c *gin.Context) string {
 	scheme := "http"
 	if c.Request.TLS != nil {
 		scheme = "https"
 	}
-	if p := c.GetHeader("X-Forwarded-Proto"); p != "" {
-		if i := strings.Index(p, ","); i >= 0 {
-			p = p[:i]
-		}
-		if v := strings.ToLower(strings.TrimSpace(p)); v != "" {
-			scheme = v
-		}
+	if p := firstForwarded(c.GetHeader("X-Forwarded-Proto")); p != "" {
+		scheme = p
 	}
-	host := strings.TrimRight(c.Request.Host, "/")
+	host := strings.TrimRight(firstForwarded(c.GetHeader("X-Forwarded-Host")), "/")
+	if host == "" {
+		host = strings.TrimRight(c.Request.Host, "/")
+	}
 	return scheme + "://" + host
+}
+
+// firstForwarded 取转发头的首个值（逗号分隔链中的最靠近客户端者）并规范化空白
+func firstForwarded(v string) string {
+	if i := strings.Index(v, ","); i >= 0 {
+		v = v[:i]
+	}
+	return strings.ToLower(strings.TrimSpace(v))
 }

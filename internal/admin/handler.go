@@ -324,25 +324,32 @@ func truncateRunes(s string, max int) string {
 	return string(r[:max-3]) + "..."
 }
 
-// siteURL 依据请求推导站点根地址；mode=1 使用 Host，mode=2 同 Host（Go 无 SERVER_NAME 区分）
+// siteURL 依据请求推导站点根地址；mode=1/2 取 Host 逻辑一致（Go 无 SERVER_NAME 区分）。
+// 反向代理场景优先使用 X-Forwarded-Proto / X-Forwarded-Host，确保展示当前访问域名。
 func siteURL(c *gin.Context, mode int) string {
 	scheme := "http"
 	if c.Request.TLS != nil {
 		scheme = "https"
 	}
-	if p := c.GetHeader("X-Forwarded-Proto"); p != "" {
-		if i := strings.Index(p, ","); i >= 0 {
-			p = p[:i]
-		}
-		if v := strings.ToLower(strings.TrimSpace(p)); v != "" {
-			scheme = v
-		}
+	if p := firstForwarded(c.GetHeader("X-Forwarded-Proto")); p != "" {
+		scheme = p
 	}
-	host := strings.TrimRight(c.Request.Host, "/")
+	host := strings.TrimRight(firstForwarded(c.GetHeader("X-Forwarded-Host")), "/")
+	if host == "" {
+		host = strings.TrimRight(c.Request.Host, "/")
+	}
 	if host == "" {
 		host = "localhost"
 	}
 	return scheme + "://" + host
+}
+
+// firstForwarded 取转发头的首个值（逗号分隔链中的最靠近客户端者）并规范化空白
+func firstForwarded(v string) string {
+	if i := strings.Index(v, ","); i >= 0 {
+		v = v[:i]
+	}
+	return strings.ToLower(strings.TrimSpace(v))
 }
 
 var tagRe = regexp.MustCompile(`<[^>]*>`)
