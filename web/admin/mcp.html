@@ -1,0 +1,189 @@
+{{template "head.html" .}}
+    <!--页面主要内容-->
+    <main class="lyear-layout-content">
+      <div class="container-fluid">
+        <input type="hidden" id="csrf-token" value="{{.CSRFToken}}">
+
+        <!--密钥区-->
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <i class="mdi mdi-key-variant"></i> 接口密钥
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="control-label">API / MCP 密钥</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="api-key" readonly value="{{.Page.Key}}" placeholder="尚未生成密钥">
+                    <span class="input-group-btn">
+                      <button class="btn btn-primary" type="button" id="btn-copy-key"><i class="mdi mdi-content-copy"></i> 复制密钥</button>
+                    </span>
+                  </div>
+                  <small class="help-block" id="key-created">{{if .Page.HasKey}}创建时间：{{.Page.CreatedAt}}{{else}}尚未生成密钥，点击「生成密钥」创建{{end}}</small>
+                </div>
+                <div class="form-group">
+                  <button class="btn btn-success" type="button" id="btn-generate"><i class="mdi mdi-key-plus"></i> 生成密钥</button>
+                  <button class="btn btn-warning" type="button" id="btn-regenerate"><i class="mdi mdi-refresh"></i> 重新生成</button>
+                </div>
+                <p class="m-b-0 text-muted">同一把密钥同时用于 REST API（<code>/api/v1</code>）与 MCP（<code>/mcp</code>）的 Bearer 鉴权；请妥善保管，不要泄露给无关人员。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!--地址区-->
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <i class="mdi mdi-link-variant"></i> 接入地址
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <label class="control-label">API 基础地址（REST）</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="api-base" readonly value="{{.Page.APIBase}}">
+                    <span class="input-group-btn">
+                      <button class="btn btn-primary" type="button" id="btn-copy-api"><i class="mdi mdi-content-copy"></i> 复制</button>
+                    </span>
+                  </div>
+                  <small class="help-block">外部程序调用 REST 接口时以此为基础地址，如 <code>GET {{.Page.APIBase}}/links</code>。</small>
+                </div>
+                <div class="form-group m-b-0">
+                  <label class="control-label">MCP 接入地址</label>
+                  <div class="input-group">
+                    <input type="text" class="form-control" id="mcp-endpoint" readonly value="{{.Page.MCPEndpoint}}">
+                    <span class="input-group-btn">
+                      <button class="btn btn-primary" type="button" id="btn-copy-mcp"><i class="mdi mdi-content-copy"></i> 复制</button>
+                    </span>
+                  </div>
+                  <small class="help-block">AI 客户端 / Agent 通过该地址以 Streamable HTTP（无状态）方式接入。</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!--配置区-->
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <i class="mdi mdi-code-tags"></i> MCP 配置
+                <span class="input-group-btn float-end">
+                  <button class="btn btn-primary btn-sm" type="button" id="btn-copy-config"><i class="mdi mdi-content-copy"></i> 复制配置</button>
+                </span>
+              </div>
+              <div class="card-body">
+                <textarea class="form-control" id="mcp-config" rows="12" readonly placeholder="生成密钥后将在此展示已内嵌密钥的 MCP 配置">{{.Page.MCPConfig}}</textarea>
+                <small class="help-block m-b-0">将配置复制到支持 Streamable HTTP 与自定义请求头的 MCP 客户端即可，<code>Authorization</code> 已内嵌当前密钥；重新生成密钥后需重新复制本配置。</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+{{template "footer.html" .}}
+<script>
+$(function () {
+    var csrfToken = document.getElementById('csrf-token').value;
+
+    // 复制：优先 navigator.clipboard，降级 textarea + execCommand
+    function legacyCopy(text, done, fail) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            if (document.execCommand('copy')) { done(); } else { fail(); }
+        } catch (e) { fail(); }
+        document.body.removeChild(ta);
+    }
+
+    function copyText(text, okMsg) {
+        if (!text) {
+            lightyear.notify('暂无可复制的内容', 'warning', 2000);
+            return;
+        }
+        var done = function () { lightyear.notify(okMsg || '复制成功', 'success', 1500); };
+        var fail = function () { lightyear.notify('复制失败，请手动选择内容复制', 'danger', 3000); };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(done).catch(function () {
+                legacyCopy(text, done, fail);
+            });
+        } else {
+            legacyCopy(text, done, fail);
+        }
+    }
+
+    // 根据当前 key 状态切换按钮
+    function renderState(hasKey) {
+        document.getElementById('btn-generate').style.display = hasKey ? 'none' : '';
+        document.getElementById('btn-regenerate').style.display = hasKey ? '' : 'none';
+        document.getElementById('btn-copy-key').disabled = !hasKey;
+    }
+
+    // 操作成功后局部更新密钥与配置区
+    function applyData(d) {
+        document.getElementById('api-key').value = d.key || '';
+        document.getElementById('api-base').value = d.api_base || '';
+        document.getElementById('mcp-endpoint').value = d.mcp_endpoint || '';
+        document.getElementById('mcp-config').value = d.mcp_config || '';
+        document.getElementById('key-created').textContent = d.key
+            ? ('创建时间：' + (d.created_at || ''))
+            : '尚未生成密钥，点击「生成密钥」创建';
+        renderState(!!d.key);
+    }
+
+    function postAction(set) {
+        $.post('ajax_mcp.php?set=' + set, { csrf_token: csrfToken }, function (res) {
+            if (res.code === 200) {
+                applyData(res.data);
+                lightyear.notify(res.msg || '操作成功', 'success', 2000);
+            } else {
+                lightyear.notify(res.msg || '操作失败', 'danger', 3000);
+            }
+        }, 'json').fail(function (xhr) {
+            lightyear.notify('请求失败：' + xhr.status, 'danger', 3000);
+        });
+    }
+
+    document.getElementById('btn-generate').addEventListener('click', function () {
+        postAction('ensure');
+    });
+    document.getElementById('btn-regenerate').addEventListener('click', function () {
+        $.confirm({
+            title: '重新生成密钥',
+            type: 'orange',
+            content: '重新生成后，<b>旧密钥将立即失效</b>，使用旧密钥配置的 API / MCP 调用都会失败，相关客户端需同步更新。确定继续吗？',
+            buttons: {
+                confirm: {
+                    text: '确定重新生成',
+                    btnClass: 'btn-warning',
+                    action: function () { postAction('regenerate'); }
+                },
+                cancel: { text: '取消' }
+            }
+        });
+    });
+    document.getElementById('btn-copy-key').addEventListener('click', function () {
+        copyText(document.getElementById('api-key').value, '密钥已复制');
+    });
+    document.getElementById('btn-copy-api').addEventListener('click', function () {
+        copyText(document.getElementById('api-base').value, 'API 地址已复制');
+    });
+    document.getElementById('btn-copy-mcp').addEventListener('click', function () {
+        copyText(document.getElementById('mcp-endpoint').value, 'MCP 地址已复制');
+    });
+    document.getElementById('btn-copy-config').addEventListener('click', function () {
+        copyText(document.getElementById('mcp-config').value, 'MCP 配置已复制');
+    });
+
+    renderState(!!document.getElementById('api-key').value);
+});
+</script>

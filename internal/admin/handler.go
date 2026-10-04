@@ -55,6 +55,7 @@ type Handler struct {
 	ThemeSvc       *service.ThemeService
 	DashboardSvc   *service.DashboardService
 	FileCleanupSvc *service.FileCleanupService
+	KeySvc         *service.APIKeyService
 
 	mu    sync.Mutex
 	fails map[string]*failState
@@ -81,6 +82,7 @@ func New(cfg *config.Config, store *site.Store, log *logger.Logger) (*Handler, e
 		ThemeSvc:       service.NewThemeService(store),
 		DashboardSvc:   service.NewDashboardService(store),
 		FileCleanupSvc: service.NewFileCleanupService(store, cfg),
+		KeySvc:         service.NewAPIKeyService(store),
 		fails:          map[string]*failState{},
 	}, nil
 }
@@ -198,6 +200,11 @@ func (h *Handler) Register(r *gin.Engine) {
 	r.GET(base+"/license.php", auth, h.LicensePage)
 	r.POST(base+"/license.php", auth, h.LicensePage)
 	r.GET(base+"/help.php", auth, h.HelpPage)
+
+	// 接口与 MCP
+	r.GET(base+"/mcp.php", auth, h.MCPPage)
+	r.GET(base+"/ajax_mcp.php", frag, h.AjaxMCP)
+	r.POST(base+"/ajax_mcp.php", frag, h.AjaxMCP)
 }
 
 // newData 构建后台模板上下文
