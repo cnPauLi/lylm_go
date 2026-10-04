@@ -47,6 +47,9 @@ type Handler struct {
 	Stats    *stats.Store
 	GroupSvc *service.GroupService
 	LinkSvc  *service.LinkService
+	TagSvc   *service.TagService
+	SouSvc   *service.SouService
+	PwdSvc   *service.PwdService
 
 	mu    sync.Mutex
 	fails map[string]*failState
@@ -65,6 +68,9 @@ func New(cfg *config.Config, store *site.Store, log *logger.Logger) (*Handler, e
 		Engine:   engine,
 		GroupSvc: service.NewGroupService(store),
 		LinkSvc:  service.NewLinkService(store, cfg),
+		TagSvc:   service.NewTagService(store),
+		SouSvc:   service.NewSouService(store),
+		PwdSvc:   service.NewPwdService(store),
 		fails:    map[string]*failState{},
 	}, nil
 }

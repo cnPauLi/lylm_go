@@ -19,4 +19,13 @@ var (
 
 	// ErrLinkHeadUnreachable 目标站点无法访问（抓取 head 时 title/icon 均为空）
 	ErrLinkHeadUnreachable = errors.New("link: 无法访问目标站点")
+
+	// ErrTagNotFound 导航菜单不存在
+	ErrTagNotFound = errors.New("tag: 导航菜单不存在")
+
+	// ErrSouNotFound 搜索引擎不存在
+	ErrSouNotFound = errors.New("sou: 搜索引擎不存在")
+
+	// ErrPwdNotFound 加密组不存在
+	ErrPwdNotFound = errors.New("pwd: 加密组不存在")
 )

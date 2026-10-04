@@ -2,6 +2,7 @@ package admin
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	gtmpl "html/template"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"lylme_spage/internal/models"
+	"lylme_spage/internal/service"
 	"lylme_spage/internal/theme"
 )
 
@@ -31,8 +33,7 @@ type souPage struct {
 func (h *Handler) SouPage(c *gin.Context) {
 	set := c.Query("set")
 	if set == "delete" {
-		id := queryInt(c, "id")
-		if err := h.Store.DB().Where("sou_id = ?", id).Delete(&models.Sou{}).Error; err != nil {
+		if err := h.SouSvc.Delete(queryInt(c, "id")); err != nil {
 			h.Log.Errorf("删除搜索引擎失败: %v", err)
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
@@ -45,13 +46,14 @@ func (h *Handler) SouPage(c *gin.Context) {
 	if err := h.Store.DB().Model(&models.Sou{}).Count(&sp.Total).Error; err != nil {
 		h.Log.Errorf("统计搜索引擎失败: %v", err)
 	}
-	if err := h.Store.DB().Order("sou_order ASC").Find(&sp.Rows).Error; err != nil {
+	rows, err := h.SouSvc.List()
+	if err != nil {
 		h.Log.Errorf("查询搜索引擎失败: %v", err)
 	}
+	sp.Rows = rows
 	if set == "edit" {
-		id := queryInt(c, "id")
-		var row models.Sou
-		if err := h.Store.DB().Where("sou_id = ?", id).First(&row).Error; err != nil {
+		row, err := h.SouSvc.Get(queryInt(c, "id"))
+		if err != nil {
 			h.renderHTML(c, `<div class="alert alert-warning">该搜索引擎不存在！</div><a href="./sou.php">&lt;&lt;返回</a>`)
 			return
 		}
@@ -76,8 +78,7 @@ type tagPage struct {
 func (h *Handler) TagPage(c *gin.Context) {
 	set := c.Query("set")
 	if set == "delete" {
-		id := queryInt(c, "id")
-		if err := h.Store.DB().Where("tag_id = ?", id).Delete(&models.Tag{}).Error; err != nil {
+		if err := h.TagSvc.Delete(queryInt(c, "id")); err != nil {
 			h.Log.Errorf("删除导航菜单失败: %v", err)
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
@@ -87,14 +88,15 @@ func (h *Handler) TagPage(c *gin.Context) {
 	}
 
 	tp := &tagPage{Set: set}
-	if err := h.Store.DB().Order("sort ASC").Find(&tp.Rows).Error; err != nil {
+	rows, err := h.TagSvc.List()
+	if err != nil {
 		h.Log.Errorf("查询导航菜单失败: %v", err)
 	}
-	tp.Total = len(tp.Rows)
+	tp.Rows = rows
+	tp.Total = len(rows)
 	if set == "edit" {
-		id := queryInt(c, "id")
-		var row models.Tag
-		if err := h.Store.DB().Where("tag_id = ?", id).First(&row).Error; err != nil {
+		row, err := h.TagSvc.Get(queryInt(c, "id"))
+		if err != nil {
 			h.renderHTML(c, alert("提示", "当前记录不存在！", "./tag.php"))
 			return
 		}
@@ -128,8 +130,7 @@ func (h *Handler) PwdPage(c *gin.Context) {
 		}
 	}
 	if set == "delete" {
-		id := queryInt(c, "id")
-		if err := h.Store.DB().Where("pwd_id = ?", id).Delete(&models.Pwd{}).Error; err != nil {
+		if err := h.PwdSvc.Delete(queryInt(c, "id")); err != nil {
 			h.Log.Errorf("删除加密组失败: %v", err)
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
@@ -139,13 +140,14 @@ func (h *Handler) PwdPage(c *gin.Context) {
 	}
 
 	pp := &pwdPage{Set: set}
-	if err := h.Store.DB().Find(&pp.Rows).Error; err != nil {
+	rows, err := h.PwdSvc.List()
+	if err != nil {
 		h.Log.Errorf("查询加密组失败: %v", err)
 	}
+	pp.Rows = rows
 	if set == "edit" {
-		id := queryInt(c, "id")
-		var row models.Pwd
-		if err := h.Store.DB().Where("pwd_id = ?", id).First(&row).Error; err != nil {
+		row, err := h.PwdSvc.Get(queryInt(c, "id"))
+		if err != nil {
 			h.renderHTML(c, `<div class="alert alert-warning">该加密组不存在！</div><a href="./pwd.php">&lt;&lt;返回加密组列表</a>`)
 			return
 		}
@@ -157,15 +159,16 @@ func (h *Handler) PwdPage(c *gin.Context) {
 }
 
 func (h *Handler) pwdAdd(c *gin.Context) {
-	name := strings.TrimSpace(c.PostForm("pwd_name"))
-	key := strings.TrimSpace(c.PostForm("pwd_key"))
-	ps := c.PostForm("pwd_ps")
-	if name == "" || key == "" {
-		h.renderHTML(c, alert("错误", "失败，请确保带星号的项目都不为空！", ""))
-		return
-	}
-	rec := models.Pwd{PwdName: name, PwdKey: key, PwdPs: ps}
-	if err := h.Store.DB().Create(&rec).Error; err != nil {
+	_, err := h.PwdSvc.Create(service.PwdInput{
+		Name: c.PostForm("pwd_name"),
+		Key:  c.PostForm("pwd_key"),
+		Ps:   c.PostForm("pwd_ps"),
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInput) {
+			h.renderHTML(c, alert("错误", "失败，请确保带星号的项目都不为空！", ""))
+			return
+		}
 		h.Log.Errorf("新增加密组失败: %v", err)
 		h.renderHTML(c, alert("错误", "添加失败", ""))
 		return
@@ -174,18 +177,22 @@ func (h *Handler) pwdAdd(c *gin.Context) {
 }
 
 func (h *Handler) pwdEdit(c *gin.Context) {
-	id := queryInt(c, "id")
-	name := strings.TrimSpace(c.PostForm("pwd_name"))
-	key := strings.TrimSpace(c.PostForm("pwd_key"))
-	ps := c.PostForm("pwd_ps")
-	if name == "" || key == "" {
-		h.renderHTML(c, alert("错误", "失败，请确保带星号的项目都不为空！", ""))
-		return
-	}
-	if err := h.Store.DB().Model(&models.Pwd{}).Where("pwd_id = ?", id).
-		Updates(map[string]any{"pwd_name": name, "pwd_key": key, "pwd_ps": ps}).Error; err != nil {
-		h.Log.Errorf("修改加密组失败: %v", err)
-		h.renderHTML(c, alert("错误", "修改失败", ""))
+	_, err := h.PwdSvc.Update(queryInt(c, "id"), service.PwdInput{
+		Name: c.PostForm("pwd_name"),
+		Key:  c.PostForm("pwd_key"),
+		Ps:   c.PostForm("pwd_ps"),
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrPwdNotFound):
+			// 原版按 WHERE 更新、不校验存在性：不存在时同样输出跳转脚本
+			h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)
+		case errors.Is(err, service.ErrInvalidInput):
+			h.renderHTML(c, alert("错误", "失败，请确保带星号的项目都不为空！", ""))
+		default:
+			h.Log.Errorf("修改加密组失败: %v", err)
+			h.renderHTML(c, alert("错误", "修改失败", ""))
+		}
 		return
 	}
 	h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)

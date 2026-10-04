@@ -203,57 +203,52 @@ func (h *Handler) AjaxLink(c *gin.Context) {
 }
 
 func (h *Handler) ajaxAddTag(c *gin.Context) {
-	name := strings.TrimSpace(c.PostForm("name"))
-	link := strings.TrimSpace(c.PostForm("link"))
-	sort := postInt(c, "sort")
-	if sort == 0 {
-		sort = 10
-	}
 	target := 0
 	if c.PostForm("target") == "1" {
 		target = 1
 	}
-	if name == "" || link == "" {
-		jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
-		return
-	}
-	rec := models.Tag{TagName: name, TagLink: link, TagTarget: target, Sort: sort}
-	if err := h.Store.DB().Create(&rec).Error; err != nil {
+	rec, err := h.TagSvc.Create(service.TagInput{
+		Name:   c.PostForm("name"),
+		Link:   c.PostForm("link"),
+		Sort:   postInt(c, "sort"),
+		Target: target,
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInput) {
+			jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+			return
+		}
 		h.Log.Errorf("新增导航菜单失败: %v", err)
 		jsonWrite(c, gin.H{"code": 500, "msg": "添加导航菜单失败"})
 		return
 	}
-	jsonWrite(c, gin.H{"code": 200, "msg": "添加导航菜单 " + name + " 成功！"})
+	jsonWrite(c, gin.H{"code": 200, "msg": "添加导航菜单 " + rec.TagName + " 成功！"})
 }
 
 func (h *Handler) ajaxEditTag(c *gin.Context) {
-	id := queryInt(c, "id")
-	var row models.Tag
-	if err := h.Store.DB().Where("tag_id = ?", id).First(&row).Error; err != nil {
-		jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
-		return
-	}
-	name := strings.TrimSpace(c.PostForm("name"))
-	link := strings.TrimSpace(c.PostForm("link"))
-	sort := postInt(c, "sort")
-	if sort == 0 {
-		sort = 10
-	}
 	target := 0
 	if c.PostForm("target") == "1" {
 		target = 1
 	}
-	if name == "" || link == "" {
-		jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+	row, err := h.TagSvc.Update(queryInt(c, "id"), service.TagInput{
+		Name:   c.PostForm("name"),
+		Link:   c.PostForm("link"),
+		Sort:   postInt(c, "sort"),
+		Target: target,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrTagNotFound):
+			jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
+		case errors.Is(err, service.ErrInvalidInput):
+			jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+		default:
+			h.Log.Errorf("修改导航菜单失败: %v", err)
+			jsonWrite(c, gin.H{"code": 500, "msg": "修改导航菜单失败！"})
+		}
 		return
 	}
-	row.TagName, row.TagLink, row.TagTarget, row.Sort = name, link, target, sort
-	if err := h.Store.DB().Save(&row).Error; err != nil {
-		h.Log.Errorf("修改导航菜单失败: %v", err)
-		jsonWrite(c, gin.H{"code": 500, "msg": "修改导航菜单失败！"})
-		return
-	}
-	jsonWrite(c, gin.H{"code": 200, "msg": "修改导航菜单 " + name + " 成功！"})
+	jsonWrite(c, gin.H{"code": 200, "msg": "修改导航菜单 " + row.TagName + " 成功！"})
 }
 
 // linkInputFromPost 从请求构建链接入参（原始值；规范化由 service 完成）
@@ -313,49 +308,45 @@ func (h *Handler) ajaxEditLink(c *gin.Context) {
 }
 
 func (h *Handler) ajaxAddSou(c *gin.Context) {
-	name := c.PostForm("name")
-	alias := c.PostForm("alias")
-	hint := c.PostForm("hint")
-	link := c.PostForm("link")
-	waplink := c.PostForm("waplink")
-	color := c.PostForm("color")
-	icon := c.PostForm("icon")
-	st := boolVal(c.PostForm("st"))
-	if name == "" && alias == "" && hint == "" && link == "" && color == "" && icon == "" {
-		jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
-		return
-	}
-	var total int64
-	_ = h.Store.DB().Model(&models.Sou{}).Count(&total).Error
-	rec := models.Sou{
-		SouAlias: alias, SouName: name, SouHint: hint, SouColor: color,
-		SouLink: link, SouWaplink: waplink, SouIcon: icon, SouSt: st, SouOrder: int(total) + 1,
-	}
-	if err := h.Store.DB().Create(&rec).Error; err != nil {
+	rec, err := h.SouSvc.Create(service.SouInput{
+		Alias:   c.PostForm("alias"),
+		Name:    c.PostForm("name"),
+		Hint:    c.PostForm("hint"),
+		Color:   c.PostForm("color"),
+		Link:    c.PostForm("link"),
+		Waplink: c.PostForm("waplink"),
+		Icon:    c.PostForm("icon"),
+		St:      boolVal(c.PostForm("st")),
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidInput) {
+			jsonWrite(c, gin.H{"code": 100, "msg": "保存错误,请确保带星号的都不为空！"})
+			return
+		}
 		h.Log.Errorf("新增搜索引擎失败: %v", err)
 		jsonWrite(c, gin.H{"code": 500, "msg": "添加搜索引擎失败！"})
 		return
 	}
-	jsonWrite(c, gin.H{"code": 200, "msg": "添加搜索引擎 " + name + " 成功！"})
+	jsonWrite(c, gin.H{"code": 200, "msg": "添加搜索引擎 " + rec.SouName + " 成功！"})
 }
 
 func (h *Handler) ajaxEditSou(c *gin.Context) {
-	id := queryInt(c, "id")
-	var row models.Sou
-	if err := h.Store.DB().Where("sou_id = ?", id).First(&row).Error; err != nil {
-		jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
-		return
-	}
-	row.SouAlias = c.PostForm("alias")
-	row.SouName = c.PostForm("name")
-	row.SouHint = c.PostForm("hint")
-	row.SouColor = c.PostForm("color")
-	row.SouLink = c.PostForm("link")
-	row.SouWaplink = c.PostForm("waplink")
-	row.SouIcon = c.PostForm("icon")
-	row.SouSt = boolVal(c.PostForm("st"))
-	row.SouOrder = postInt(c, "order")
-	if err := h.Store.DB().Save(&row).Error; err != nil {
+	row, err := h.SouSvc.Update(queryInt(c, "id"), service.SouInput{
+		Alias:   c.PostForm("alias"),
+		Name:    c.PostForm("name"),
+		Hint:    c.PostForm("hint"),
+		Color:   c.PostForm("color"),
+		Link:    c.PostForm("link"),
+		Waplink: c.PostForm("waplink"),
+		Icon:    c.PostForm("icon"),
+		St:      boolVal(c.PostForm("st")),
+		Order:   postInt(c, "order"),
+	})
+	if err != nil {
+		if errors.Is(err, service.ErrSouNotFound) {
+			jsonWrite(c, gin.H{"code": 404, "msg": "该条记录不存在！"})
+			return
+		}
 		h.Log.Errorf("修改搜索引擎失败: %v", err)
 		jsonWrite(c, gin.H{"code": 500, "msg": "修改失败！"})
 		return
