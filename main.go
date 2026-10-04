@@ -12,6 +12,7 @@ import (
 	"lylme_spage/internal/config"
 	"lylme_spage/internal/database"
 	"lylme_spage/internal/logger"
+	"lylme_spage/internal/pages"
 	"lylme_spage/internal/router"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/view"
@@ -46,7 +47,13 @@ func main() {
 
 	engine := view.NewEngine(store, AppVersion)
 
-	h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Log: log}
+	pageEngine, err := pages.NewEngine(cfg.Path("web"), engine)
+	if err != nil {
+		log.Errorf("初始化页面模板失败: %v", err)
+		os.Exit(1)
+	}
+
+	h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Pages: pageEngine, Log: log}
 	r := router.Setup(h)
 
 	srv := &http.Server{Addr: cfg.Addr(), Handler: r}

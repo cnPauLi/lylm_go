@@ -98,6 +98,15 @@ type Tag struct {
 // TableName 指定表名
 func (Tag) TableName() string { return "lylme_tags" }
 
+// IsAbout 判断导航链接是否为「关于」页（用于 about 页导航高亮）
+func (t Tag) IsAbout() bool {
+	switch t.TagLink {
+	case "/about", "/about/", "./about", "./about/":
+		return true
+	}
+	return false
+}
+
 // AllModels 返回所有需要迁移的模型
 func AllModels() []any {
 	return []any{

@@ -3,6 +3,7 @@ package pages
 import (
 	"html"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -71,6 +72,44 @@ func PasswordHandler(store *site.Store, log *logger.Logger) gin.HandlerFunc {
 		}
 
 		c.Redirect(http.StatusFound, "/")
+	}
+}
+
+// pwdPage 访问密码页渲染数据
+type pwdPage struct {
+	PwdEnabled bool
+	IsLoggedIn bool
+	Unlocked   []string
+}
+
+// Pwd 访问密码页 /pwd/ 与 /pwd
+func Pwd(store *site.Store, engine *Engine, log *logger.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var count int64
+		if err := store.DB().Model(&models.Pwd{}).Count(&count).Error; err != nil {
+			log.Errorf("查询访问密码失败: %v", err)
+		}
+
+		page := &pwdPage{
+			PwdEnabled: count != 0,
+			IsLoggedIn: webutil.IsPwdLogged(c),
+		}
+		if page.IsLoggedIn {
+			for _, id := range webutil.UnlockedIDs(c) {
+				page.Unlocked = append(page.Unlocked, strconv.Itoa(id))
+			}
+		}
+
+		data := engine.DataFor("", page.IsLoggedIn, webutil.IsMobile(c.Request))
+		data.CSRFToken = webutil.CSRFToken(c)
+		data.BackgroundImg = relativeBackground(data.BackgroundImg)
+		data.Page = page
+
+		c.Header("Content-Type", "text/html; charset=utf-8")
+		if err := engine.Render(c.Writer, "pwd.html", data); err != nil {
+			log.Errorf("访问密码页渲染失败: %v", err)
+			c.String(http.StatusInternalServerError, "页面渲染失败")
+		}
 	}
 }
 

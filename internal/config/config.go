@@ -22,11 +22,11 @@ type MySQLConfig struct {
 
 // Config 应用配置，全部来源于 .env / 环境变量
 type Config struct {
-	AppEnv   string
-	RootDir  string
-	Host     string
-	Port     int
-	Mode     string
+	AppEnv    string
+	RootDir   string
+	Host      string
+	Port      int
+	Mode      string
 	AdminPath string
 
 	DBDriver   string

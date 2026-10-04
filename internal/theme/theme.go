@@ -11,17 +11,17 @@ import (
 
 // Info 主题元信息（theme.ini）
 type Info struct {
-	Dir         string
-	Name        string
-	AuthorName  string
-	AuthorLink  string
-	Version     string
-	Explain     string
-	Demo        string
-	Course      string
-	Requires    string
-	UpdatedAt   string
-	License     string
+	Dir        string
+	Name       string
+	AuthorName string
+	AuthorLink string
+	Version    string
+	Explain    string
+	Demo       string
+	Course     string
+	Requires   string
+	UpdatedAt  string
+	License    string
 }
 
 // Manager 主题管理器

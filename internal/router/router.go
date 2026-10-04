@@ -26,6 +26,7 @@ type Handler struct {
 	Cfg    *config.Config
 	Store  *site.Store
 	Engine *view.Engine
+	Pages  *pages.Engine
 	Log    *logger.Logger
 }
 
@@ -48,16 +49,40 @@ func Setup(h *Handler) *gin.Engine {
 	r.GET("/healthz", func(c *gin.Context) { c.String(http.StatusOK, "ok") })
 
 	// 静态资源：assets / template / site/static / files（屏蔽 .php 源码）
-	r.GET("/assets/*filepath", h.staticHandler(h.Cfg.Path("assets")))
+	// assets 下需放行 bing.php / cron.php 两个动态壁纸接口
+	r.GET("/assets/*filepath", h.assetsHandler())
 	r.GET("/template/*filepath", h.staticHandler(h.Cfg.Path("template")))
 	r.GET("/site/static/*filepath", h.staticHandler(h.Cfg.Path("site", "static")))
 	r.GET("/files/*filepath", h.staticHandler(h.Cfg.Path("files")))
 
-	// 验证码 / 上传 / 访问密码
+	// 验证码 / 上传 / 访问密码 / 二维码
 	r.GET("/include/validatecode.php", h.ValidateCode)
 	r.POST("/include/file.php", upload.Handler(h.Cfg, h.Store, h.Log))
 	r.GET("/include/go.php", pages.PasswordHandler(h.Store, h.Log))
 	r.POST("/include/go.php", pages.PasswordHandler(h.Store, h.Log))
+	r.GET("/include/qrcode.php", pages.Qrcode(h.Log))
+
+	// 固定功能页
+	r.GET("/about/", pages.About(h.Store, h.Pages, h.Log))
+	r.GET("/about", pages.About(h.Store, h.Pages, h.Log))
+
+	applyHandler := pages.Apply(h.Cfg, h.Store, h.Pages, h.Log)
+	r.GET("/apply/", applyHandler)
+	r.GET("/apply", applyHandler)
+	r.GET("/apply/index.php", applyHandler)
+	r.POST("/apply/index.php", applyHandler)
+	r.POST("/apply/wxplus.php", pages.WxPlus(h.Cfg, h.Store, h.Log))
+	r.StaticFile("/apply/apply.js", h.Cfg.Path("apply", "apply.js"))
+
+	pwdHandler := pages.Pwd(h.Store, h.Pages, h.Log)
+	r.GET("/pwd/", pwdHandler)
+	r.GET("/pwd", pwdHandler)
+
+	siteDetail := pages.SiteDetail(h.Cfg, h.Store, h.Pages, h.Log)
+	r.GET("/site-:id", siteDetail)
+	r.GET("/site", siteDetail)
+
+	r.GET("/sitemap.xml", pages.Sitemap(h.Cfg, h.Store, h.Log))
 
 	// 前台首页
 	r.GET("/", h.Home)
@@ -131,6 +156,24 @@ func (h *Handler) baseData(c *gin.Context, tplName string) *view.ViewData {
 
 // unlocked 读取会话中已解锁的加密组
 func (h *Handler) unlocked(c *gin.Context) []int { return webutil.UnlockedIDs(c) }
+
+// assetsHandler 服务 /assets/* ，并放行 bing.php / cron.php 动态接口
+func (h *Handler) assetsHandler() gin.HandlerFunc {
+	static := h.staticHandler(h.Cfg.Path("assets"))
+	bing := pages.BingImage(h.Log)
+	cron := pages.CronImage(h.Cfg, h.Store, h.Log)
+	return func(c *gin.Context) {
+		switch c.Param("filepath") {
+		case "/img/bing.php":
+			bing(c)
+			return
+		case "/img/cron.php":
+			cron(c)
+			return
+		}
+		static(c)
+	}
+}
 
 // staticHandler 提供静态文件，屏蔽 .php 源码
 func (h *Handler) staticHandler(root string) gin.HandlerFunc {

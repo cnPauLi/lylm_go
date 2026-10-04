@@ -29,19 +29,19 @@ type SouView struct {
 
 // ViewData 模板渲染上下文，方法即模板可调用的辅助函数
 type ViewData struct {
-	Conf    map[string]string
-	Cdn     string
-	Template string
-	TemplatePath string
-	AppVersion   string
-	IsLogin      bool
-	IsMobile     bool
+	Conf          map[string]string
+	Cdn           string
+	Template      string
+	TemplatePath  string
+	AppVersion    string
+	IsLogin       bool
+	IsMobile      bool
 	BackgroundImg string
-	Groups       []site.GroupView
-	Sou          []SouView
-	Tags         []models.Tag
-	CSRFToken    string
-	Page         any
+	Groups        []site.GroupView
+	Sou           []SouView
+	Tags          []models.Tag
+	CSRFToken     string
+	Page          any
 
 	store   *site.Store
 	yanData []string
@@ -61,6 +61,42 @@ func (v *ViewData) ThemeCfg(name, def string) string {
 		return def
 	}
 	return v.store.Theme().ConfigValue(v.Template, name, def, v.Conf)
+}
+
+// TitleShort 站点标题以 "-" 分割后的首段（等价 explode("-", $conf['title'])[0]）
+func (v *ViewData) TitleShort() string {
+	parts := strings.Split(v.Cfg("title"), "-")
+	return strings.TrimSpace(parts[0])
+}
+
+// TitleFirst 站点标题首字符（等价 mb_substr(explode(...)[0], 0, 1)）
+func (v *ViewData) TitleFirst() string {
+	s := v.TitleShort()
+	if s == "" {
+		return ""
+	}
+	return string([]rune(s)[0])
+}
+
+// CSRF 输出隐藏的 CSRF 表单域（使用 CSRF() 方法渲染，避免 view 依赖 webutil）
+func (v *ViewData) CSRF() gtmpl.HTML {
+	return gtmpl.HTML(`<input type="hidden" name="csrf_token" value="` + gtmpl.HTMLEscapeString(v.CSRFToken) + `">`)
+}
+
+// LogoRoot 将 logo 统一为站点根路径，便于从 /about/ 等子目录访问
+func (v *ViewData) LogoRoot() string {
+	logo := strings.TrimSpace(v.Cfg("logo"))
+	if logo == "" {
+		return ""
+	}
+	logo = strings.TrimPrefix(logo, "./")
+	if strings.HasPrefix(logo, "//") || strings.HasPrefix(logo, "http://") || strings.HasPrefix(logo, "https://") {
+		return logo
+	}
+	if !strings.HasPrefix(logo, "/") {
+		logo = "/" + logo
+	}
+	return logo
 }
 
 // Mode 运行模式（1 直接跳转，2 详情页）
@@ -159,15 +195,15 @@ func htmlspecialchars(s string) string {
 
 func groupReplacements(g site.GroupView) map[string]string {
 	return map[string]string{
-		"{group_id}":   strconv.Itoa(g.GroupID),
-		"{group_name}": g.GroupName,
-		"{group_icon}": g.GroupIcon,
-		"{link_id}":    "",
-		"{link_name}":  "",
+		"{group_id}":       strconv.Itoa(g.GroupID),
+		"{group_name}":     g.GroupName,
+		"{group_icon}":     g.GroupIcon,
+		"{link_id}":        "",
+		"{link_name}":      "",
 		"{link_name_text}": "",
-		"{link_desc}":  "",
-		"{link_url}":   "",
-		"{link_icon}":  "",
+		"{link_desc}":      "",
+		"{link_url}":       "",
+		"{link_icon}":      "",
 	}
 }
 
@@ -185,15 +221,15 @@ func linkReplacements(l models.Link, mode string) map[string]string {
 		icon = `<img src="` + htmlspecialchars(icon) + `" alt="` + htmlspecialchars(alt) + `" />`
 	}
 	return map[string]string{
-		"{group_id}":   "",
-		"{group_name}": "",
-		"{group_icon}": "",
-		"{link_id}":    strconv.Itoa(l.ID),
-		"{link_name}":  l.Name,
+		"{group_id}":       "",
+		"{group_name}":     "",
+		"{group_icon}":     "",
+		"{link_id}":        strconv.Itoa(l.ID),
+		"{link_name}":      l.Name,
 		"{link_name_text}": htmlspecialchars(alt),
-		"{link_desc}":  l.LinkDesc,
-		"{link_url}":   url,
-		"{link_icon}":  icon,
+		"{link_desc}":      l.LinkDesc,
+		"{link_url}":       url,
+		"{link_icon}":      icon,
 	}
 }
 
@@ -255,8 +291,8 @@ var funcMap = gtmpl.FuncMap{
 		}
 		return m
 	},
-	"raw": func(s string) gtmpl.HTML { return gtmpl.HTML(s) },
-	"b64": func(s string) string { return base64.StdEncoding.EncodeToString([]byte(s)) },
+	"raw":  func(s string) gtmpl.HTML { return gtmpl.HTML(s) },
+	"b64":  func(s string) string { return base64.StdEncoding.EncodeToString([]byte(s)) },
 	"trim": strings.TrimSpace,
 	"digits": func(s string) string {
 		m := digitRe.FindString(s)

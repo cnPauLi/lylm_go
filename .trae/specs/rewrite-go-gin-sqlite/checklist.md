@@ -33,16 +33,16 @@
 - [x] `/include/go.php` 支持密码解锁与注销，解锁后首页可见对应加密分组
 
 ## 阶段3：固定功能页
-- [ ] `/site-{id}.html` 正常渲染详情页，缺失链接返回 404 页
-- [ ] 详情页描述/关键词缺失时在线采集并回写数据库
-- [ ] `/apply/` 表单与原版一致，提交返回 `{code,msg}`
-- [ ] 收录成功按 `apply` 配置决定是否直接入库
-- [ ] `/about/` 渲染 `about_content` 与版权
-- [ ] `/pwd/` 未启用加密/未登录/已登录三种状态显示正确
-- [ ] `/sitemap.xml` 输出合法 XML，含首页/申请/关于/明文链接
-- [ ] `/include/qrcode.php` 输出 PNG 二维码
-- [ ] `/assets/img/bing.php` 代理输出壁纸；`/assets/img/cron.php` 需密钥并落盘 `background.jpg`
-- [ ] `/site/static/*`、`/apply/apply.js` 静态资源可访问（前端 JS 无需改动）
+- [x] `/site-{id}.html` 正常渲染详情页，缺失链接返回 404 页
+- [x] 详情页描述/关键词缺失时在线采集并回写数据库
+- [x] `/apply/` 表单与原版一致，提交返回 `{code,msg}`
+- [x] 收录成功按 `apply` 配置决定是否直接入库
+- [x] `/about/` 渲染 `about_content` 与版权
+- [x] `/pwd/` 未启用加密/未登录/已登录三种状态显示正确
+- [x] `/sitemap.xml` 输出合法 XML，含首页/申请/关于/明文链接
+- [x] `/include/qrcode.php` 输出 PNG 二维码
+- [x] `/assets/img/bing.php` 代理输出壁纸；`/assets/img/cron.php` 需密钥并落盘 `background.jpg`
+- [x] `/site/static/*`、`/apply/apply.js` 静态资源可访问（前端 JS 无需改动）
 
 ## 阶段4：后台管理
 - [ ] 登录成功/失败、验证码、失败锁定行为正确

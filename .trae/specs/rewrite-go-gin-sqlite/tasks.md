@@ -28,15 +28,15 @@
   - [x] SubTask 2.5: 图片上传/远程抓取接口 `/include/file.php`（类型/大小/限流）
   - [x] SubTask 2.6: 访问密码解锁与注销 `/include/go.php`
 
-- [ ] Task 3: 固定功能页
-  - [ ] SubTask 3.1: 详情页 `/site-{id}.html`（含 404 与在线采集回写）
-  - [ ] SubTask 3.2: 收录申请 `/apply/`、`/apply/index.php`、`/apply/wxplus.php`
-  - [ ] SubTask 3.3: 关于页 `/about/`
-  - [ ] SubTask 3.4: 访问密码页 `/pwd/`
-  - [ ] SubTask 3.5: 站点地图 `/sitemap.xml`
-  - [ ] SubTask 3.6: 二维码 `/include/qrcode.php`
-  - [ ] SubTask 3.7: Bing 壁纸 `/assets/img/bing.php` 与缓存 `/assets/img/cron.php`
-  - [ ] SubTask 3.8: 静态资源补齐（`/site/static/*`、`/apply/apply.js`）与路由接线
+- [x] Task 3: 固定功能页
+  - [x] SubTask 3.1: 详情页 `/site-{id}.html`（含 404 与在线采集回写）
+  - [x] SubTask 3.2: 收录申请 `/apply/`、`/apply/index.php`、`/apply/wxplus.php`
+  - [x] SubTask 3.3: 关于页 `/about/`
+  - [x] SubTask 3.4: 访问密码页 `/pwd/`
+  - [x] SubTask 3.5: 站点地图 `/sitemap.xml`
+  - [x] SubTask 3.6: 二维码 `/include/qrcode.php`
+  - [x] SubTask 3.7: Bing 壁纸 `/assets/img/bing.php` 与缓存 `/assets/img/cron.php`
+  - [x] SubTask 3.8: 静态资源补齐（`/site/static/*`、`/apply/apply.js`）与路由接线
 
 - [ ] Task 4: 后台管理
   - [ ] SubTask 4.1: 登录/登出与后台鉴权中间件（Cookie 签名、失败锁定、验证码）
