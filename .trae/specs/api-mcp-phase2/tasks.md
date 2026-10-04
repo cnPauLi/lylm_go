@@ -442,7 +442,7 @@
 
 - **Priority**: high
 - **Depends On**: T18、T19
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 启动服务，使用 curl / MCP Inspector 完成真实链路验证并留存记录：
@@ -458,7 +458,7 @@
 - rule：真实 curl/Inspector 链路全部符合预期且记录已留存；证据：验证记录。
 - rubric（AC-10）：按 0–3 锚点评分 ≥2.5；证据：独立评审。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 真实二进制 + 隔离临时数据库（真实项目根，SQLITE_PATH 覆盖）curl 验证：REST（401/200、groups 列表、新建分组、links 分页、新建链接、重复 URL 409 含 id）；MCP（无 key 401、initialize、tools/list=56、group_list/link_create 成功、缺必填 IsError）；密钥轮换（regenerate 后旧 key 401/新 key 200）；前台回归（/、/about/、登录页 200，后台 mcp.php 未登录 302）。最终 go build/vet/test 全包通过，工作区无 .env/data/logs 待提交内容。
 
 ---
 
