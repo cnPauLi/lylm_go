@@ -18,7 +18,7 @@ type indexPage struct {
 
 // Dashboard 后台首页
 func (h *Handler) Dashboard(c *gin.Context) {
-	// AJAX 检查更新（原版 index.php?check=update），此处为桩实现，始终返回最新
+	// AJAX 检查更新（原版后台首页 check=update 请求），此处为桩实现，始终返回最新
 	if c.Query("check") == "update" {
 		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "当前已是最新版本"})
 		return
@@ -34,7 +34,7 @@ func (h *Handler) Dashboard(c *gin.Context) {
 		Build:      sum.Build,
 	}
 
-	data := h.newData(c, "后台管理", "index.php", "home")
+	data := h.newData(c, "后台管理", "index", "home")
 	data.Page = page
 	if h.Stats != nil {
 		data.Stats = h.Stats.Summary(7)

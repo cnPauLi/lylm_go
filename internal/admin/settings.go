@@ -15,7 +15,7 @@ type setPage struct {
 	Mode2 bool
 }
 
-// SetPage 处理 set.php（GET 渲染 / POST ?set=save 保存）
+// SetPage 处理 set（GET 渲染 / POST ?set=save 保存）
 func (h *Handler) SetPage(c *gin.Context) {
 	if c.Request.Method == http.MethodPost && c.Query("set") == "save" {
 		in := service.SiteSettingsInput{
@@ -37,31 +37,31 @@ func (h *Handler) SetPage(c *gin.Context) {
 		if err := h.ConfigSvc.UpdateSiteSettings(in); err != nil {
 			h.Log.Errorf("保存网站设置失败: %v", err)
 		}
-		h.renderHTML(c, alert("成功", "网站设置修改成功！", "./set.php"))
+		h.renderHTML(c, alert("成功", "网站设置修改成功！", "./set"))
 		return
 	}
-	data := h.newData(c, "网站设置", "set.php", "config")
+	data := h.newData(c, "网站设置", "set", "config")
 	data.Page = &setPage{Mode2: h.Store.Get("mode", "1") == "2"}
 	h.render(c, "set.html", data)
 }
 
-// AboutPage 处理 about.php
+// AboutPage 处理 about
 func (h *Handler) AboutPage(c *gin.Context) {
 	switch {
 	case c.Request.Method == http.MethodPost && c.Query("set") == "conf_submit":
 		if err := h.ConfigSvc.UpdateAboutContent(c.PostForm("about")); err != nil {
 			h.Log.Errorf("保存关于页失败: %v", err)
 		}
-		h.renderHTML(c, alert("成功", "修改成功！", "./about.php"))
+		h.renderHTML(c, alert("成功", "修改成功！", "./about"))
 		return
 	case c.Query("set") == "default":
 		if err := h.ConfigSvc.ResetAboutContent(); err != nil {
 			h.Log.Errorf("恢复关于页默认失败: %v", err)
 		}
-		h.renderHTML(c, alert("成功", "恢复默认成功！", "./about.php"))
+		h.renderHTML(c, alert("成功", "恢复默认成功！", "./about"))
 		return
 	}
-	data := h.newData(c, "关于页面设置", "about.php", "config")
+	data := h.newData(c, "关于页面设置", "about", "config")
 	h.render(c, "about.html", data)
 }
 
@@ -71,7 +71,7 @@ type userPage struct {
 	DebugOn    bool
 }
 
-// UserPage 处理 user.php
+// UserPage 处理 user
 func (h *Handler) UserPage(c *gin.Context) {
 	set := c.Query("set")
 	if c.Request.Method == http.MethodPost {
@@ -84,7 +84,7 @@ func (h *Handler) UserPage(c *gin.Context) {
 			return
 		}
 	}
-	data := h.newData(c, "系统安全", "user.php", "config")
+	data := h.newData(c, "系统安全", "user", "config")
 	data.Page = &userPage{CurrentDir: h.AdminPath(), DebugOn: h.Store.Get("debug", "0") == "1"}
 	h.render(c, "user.html", data)
 }
@@ -139,12 +139,12 @@ func (h *Handler) userSysSave(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "保存失败: %v", err)
 		return
 	}
-	// 说明：原版通过改写 include/common.php 中的 ADMIN_PATH / DEBUG 常量实现，
+	// 说明：原版通过改写 include/common 中的 ADMIN_PATH / DEBUG 常量实现，
 	// Go 版无法改写 PHP 源码，改为持久化为数据库配置项 admin_path / debug，
 	// 于下次启动注册路由时生效（见 Handler.AdminPath）。
 	msg := "系统设置保存成功！"
 	if newAdminPath != h.AdminPath() {
 		msg += "\\n后台目录已修改为 " + newAdminPath + "，重启服务后请通过新地址访问后台（" + newAdminPath + "/）"
 	}
-	h.renderHTML(c, alert("成功", msg, "./user.php"))
+	h.renderHTML(c, alert("成功", msg, "./user"))
 }

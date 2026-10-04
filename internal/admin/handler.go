@@ -114,7 +114,7 @@ func authed(c *gin.Context, store *site.Store) bool {
 func RequireAuth(store *site.Store, basePath string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !authed(c, store) {
-			c.Redirect(http.StatusFound, basePath+"/login.php")
+			c.Redirect(http.StatusFound, basePath+"/login")
 			c.Abort()
 			return
 		}
@@ -128,7 +128,7 @@ func RequireAuthFragment(store *site.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !authed(c, store) {
 			c.Header("Content-Type", "text/html; charset=utf-8")
-			_, _ = c.Writer.WriteString("<script>window.location.href='./login.php';</script>")
+			_, _ = c.Writer.WriteString("<script>window.location.href='./login';</script>")
 			c.Abort()
 			return
 		}
@@ -143,68 +143,68 @@ func (h *Handler) Register(r *gin.Engine) {
 	frag := RequireAuthFragment(h.Store)
 
 	// 登录 / 登出
-	r.GET(base+"/login.php", h.LoginPage)
-	r.POST(base+"/login.php", h.LoginSubmit)
+	r.GET(base+"/login", h.LoginPage)
+	r.POST(base+"/login", h.LoginSubmit)
 
 	// 仪表盘
-	for _, p := range []string{base, base + "/", base + "/index.php"} {
+	for _, p := range []string{base, base + "/"} {
 		r.GET(p, auth, h.Dashboard)
 	}
 
 	// 网站配置
-	r.GET(base+"/set.php", auth, h.SetPage)
-	r.POST(base+"/set.php", auth, h.SetPage)
-	r.GET(base+"/about.php", auth, h.AboutPage)
-	r.POST(base+"/about.php", auth, h.AboutPage)
-	r.GET(base+"/user.php", auth, h.UserPage)
-	r.POST(base+"/user.php", auth, h.UserPage)
+	r.GET(base+"/set", auth, h.SetPage)
+	r.POST(base+"/set", auth, h.SetPage)
+	r.GET(base+"/about", auth, h.AboutPage)
+	r.POST(base+"/about", auth, h.AboutPage)
+	r.GET(base+"/user", auth, h.UserPage)
+	r.POST(base+"/user", auth, h.UserPage)
 
 	// 链接管理
-	r.GET(base+"/link.php", auth, h.LinkPage)
-	r.GET(base+"/table_link.php", frag, h.TableLink)
-	r.GET(base+"/ajax_link.php", frag, h.AjaxLink)
-	r.POST(base+"/ajax_link.php", frag, h.AjaxLink)
+	r.GET(base+"/link", auth, h.LinkPage)
+	r.GET(base+"/table_link", frag, h.TableLink)
+	r.GET(base+"/ajax_link", frag, h.AjaxLink)
+	r.POST(base+"/ajax_link", frag, h.AjaxLink)
 
 	// 分组管理
-	r.GET(base+"/group.php", auth, h.GroupPage)
-	r.POST(base+"/group.php", auth, h.GroupPage)
-	r.GET(base+"/table_group.php", frag, h.TableGroup)
+	r.GET(base+"/group", auth, h.GroupPage)
+	r.POST(base+"/group", auth, h.GroupPage)
+	r.GET(base+"/table_group", frag, h.TableGroup)
 
 	// 搜索引擎 / 导航菜单 / 加密组
-	r.GET(base+"/sou.php", auth, h.SouPage)
-	r.POST(base+"/sou.php", auth, h.SouPage)
-	r.GET(base+"/tag.php", auth, h.TagPage)
-	r.POST(base+"/tag.php", auth, h.TagPage)
-	r.GET(base+"/pwd.php", auth, h.PwdPage)
-	r.POST(base+"/pwd.php", auth, h.PwdPage)
+	r.GET(base+"/sou", auth, h.SouPage)
+	r.POST(base+"/sou", auth, h.SouPage)
+	r.GET(base+"/tag", auth, h.TagPage)
+	r.POST(base+"/tag", auth, h.TagPage)
+	r.GET(base+"/pwd", auth, h.PwdPage)
+	r.POST(base+"/pwd", auth, h.PwdPage)
 
 	// 收录管理
-	r.GET(base+"/apply.php", auth, h.ApplyPage)
-	r.POST(base+"/apply.php", auth, h.ApplyPage)
-	r.GET(base+"/ajax_apply.php", frag, h.AjaxApply)
-	r.POST(base+"/ajax_apply.php", frag, h.AjaxApply)
+	r.GET(base+"/apply", auth, h.ApplyPage)
+	r.POST(base+"/apply", auth, h.ApplyPage)
+	r.GET(base+"/ajax_apply", frag, h.AjaxApply)
+	r.POST(base+"/ajax_apply", frag, h.AjaxApply)
 
 	// 主题
-	r.GET(base+"/theme.php", auth, h.ThemePage)
-	r.GET(base+"/theme_setting.php", auth, h.ThemeSettingPage)
-	r.GET(base+"/ajax_theme.php", frag, h.AjaxTheme)
-	r.POST(base+"/ajax_theme.php", frag, h.AjaxTheme)
+	r.GET(base+"/theme", auth, h.ThemePage)
+	r.GET(base+"/theme_setting", auth, h.ThemeSettingPage)
+	r.GET(base+"/ajax_theme", frag, h.AjaxTheme)
+	r.POST(base+"/ajax_theme", frag, h.AjaxTheme)
 
 	// 文件清理 / 批量导入 / 更新 / 微信 / 授权 / 帮助
-	r.GET(base+"/cleanimg.php", auth, h.CleanImg)
-	r.POST(base+"/cleanimg.php", auth, h.CleanImg)
-	r.GET(base+"/batch_add.php", auth, h.BatchAdd)
-	r.GET(base+"/update.php", auth, h.UpdatePage)
-	r.GET(base+"/wxplus.php", auth, h.WxPlusPage)
-	r.POST(base+"/wxplus.php", auth, h.WxPlusPage)
-	r.GET(base+"/license.php", auth, h.LicensePage)
-	r.POST(base+"/license.php", auth, h.LicensePage)
-	r.GET(base+"/help.php", auth, h.HelpPage)
+	r.GET(base+"/cleanimg", auth, h.CleanImg)
+	r.POST(base+"/cleanimg", auth, h.CleanImg)
+	r.GET(base+"/batch_add", auth, h.BatchAdd)
+	r.GET(base+"/update", auth, h.UpdatePage)
+	r.GET(base+"/wxplus", auth, h.WxPlusPage)
+	r.POST(base+"/wxplus", auth, h.WxPlusPage)
+	r.GET(base+"/license", auth, h.LicensePage)
+	r.POST(base+"/license", auth, h.LicensePage)
+	r.GET(base+"/help", auth, h.HelpPage)
 
 	// 接口与 MCP
-	r.GET(base+"/mcp.php", auth, h.MCPPage)
-	r.GET(base+"/ajax_mcp.php", frag, h.AjaxMCP)
-	r.POST(base+"/ajax_mcp.php", frag, h.AjaxMCP)
+	r.GET(base+"/mcp", auth, h.MCPPage)
+	r.GET(base+"/ajax_mcp", frag, h.AjaxMCP)
+	r.POST(base+"/ajax_mcp", frag, h.AjaxMCP)
 }
 
 // newData 构建后台模板上下文

@@ -13,7 +13,7 @@ import (
 	"lylme_spage/internal/webutil"
 )
 
-// 登录安全策略常量（与原版 login.php 一致）
+// 登录安全策略常量（与原版登录页一致）
 const (
 	loginMaxFailures   = 5
 	loginLockSeconds   = 60
@@ -86,11 +86,11 @@ func (h *Handler) resetFailure(ip string) {
 func (h *Handler) LoginPage(c *gin.Context) {
 	if _, ok := c.GetQuery("logout"); ok {
 		webutil.ClearAdmin(c)
-		c.Redirect(http.StatusFound, h.Base()+"/login.php")
+		c.Redirect(http.StatusFound, h.Base()+"/login")
 		return
 	}
 	if authed(c, h.Store) {
-		c.Redirect(http.StatusFound, h.Base()+"/index.php")
+		c.Redirect(http.StatusFound, h.Base()+"/")
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *Handler) LoginPage(c *gin.Context) {
 	}
 	page.Background = strings.ReplaceAll(h.Store.Get("background", ""), "./", "../")
 
-	data := h.newData(c, "后台登录", "login.php", "")
+	data := h.newData(c, "后台登录", "login", "")
 	data.Page = page
 	h.render(c, "login.html", data)
 }
@@ -137,7 +137,7 @@ func (h *Handler) LoginSubmit(c *gin.Context) {
 		remain := int((lockUntil - now + 59) / 60)
 		flashSet(c, sessLoginError, "登录尝试次数过多，请 "+itoa(remain)+" 分钟后再试")
 		flashSet(c, sessLoginUser, user)
-		c.Redirect(http.StatusFound, h.Base()+"/login.php")
+		c.Redirect(http.StatusFound, h.Base()+"/login")
 		return
 	}
 
@@ -147,7 +147,7 @@ func (h *Handler) LoginSubmit(c *gin.Context) {
 			h.recordFailure(ip)
 			flashSet(c, sessLoginError, "验证码错误，请重新输入")
 			flashSet(c, sessLoginUser, user)
-			c.Redirect(http.StatusFound, h.Base()+"/login.php")
+			c.Redirect(http.StatusFound, h.Base()+"/login")
 			return
 		}
 	}
@@ -160,14 +160,14 @@ func (h *Handler) LoginSubmit(c *gin.Context) {
 		subtle.ConstantTimeCompare([]byte(wantPwd), []byte(gotPwd)) == 1 {
 		h.resetFailure(ip)
 		webutil.SetAdmin(c, adminSign(h.Store))
-		c.Redirect(http.StatusFound, h.Base()+"/index.php")
+		c.Redirect(http.StatusFound, h.Base()+"/")
 		return
 	}
 
 	h.recordFailure(ip)
 	flashSet(c, sessLoginError, "用户名或密码不正确")
 	flashSet(c, sessLoginUser, user)
-	c.Redirect(http.StatusFound, h.Base()+"/login.php")
+	c.Redirect(http.StatusFound, h.Base()+"/login")
 }
 
 func itoa(n int) string {

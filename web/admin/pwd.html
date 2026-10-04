@@ -7,7 +7,7 @@
                     <div class="card-body">
 {{if eq .Page.Set "add"}}
     <h4>新增加密组</h4>
-    <form action="./pwd.php?set=add_submit" method="POST">
+    <form action="./pwd?set=add_submit" method="POST">
         <div class="form-group">
             <label for="pwd_name">*加密组名称:</label>
             <input type="text" id="pwd_name" class="form-control" name="pwd_name" value="" required>
@@ -24,10 +24,10 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="添加">
         </div>
     </form>
-    <br/><a href="./pwd.php">&lt;&lt;返回加密组列表</a>
+    <br/><a href="./pwd">&lt;&lt;返回加密组列表</a>
 {{else if eq .Page.Set "edit"}}
     <h4>修改加密组信息</h4>
-    <form action="./pwd.php?set=edit_submit&id={{.Page.Edit.PwdID}}" method="POST">
+    <form action="./pwd?set=edit_submit&id={{.Page.Edit.PwdID}}" method="POST">
         <div class="form-group">
             <label for="pwd_name">*加密组名称:</label>
             <input type="text" id="pwd_name" class="form-control" name="pwd_name" value="{{.Page.Edit.PwdName}}" required>
@@ -44,12 +44,12 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="修改">
         </div>
     </form>
-    <br/><a href="./pwd.php">&lt;&lt;返回加密组列表</a>
+    <br/><a href="./pwd">&lt;&lt;返回加密组列表</a>
 {{else}}
                     <div class="alert alert-info">
                         <div class="alert-stat">
                             <div><h4 class="mb-0"><i class="mdi mdi-lock-outline mdi-alert-icon"></i>链接加密</h4></div>
-                            <a href="./pwd.php?set=add" class="btn btn-primary btn-sm">新建加密</a>
+                            <a href="./pwd?set=add" class="btn btn-primary btn-sm">新建加密</a>
                         </div>
                         <ul class="mb-0 mt-2">
                             <li>加密后的链接地址在本页面显示为<font color="#f96197">粉色</font>，以便标识</li>
@@ -70,7 +70,7 @@
                                             <td>{{.PwdName}}</td>
                                             <td>{{.PwdKey}}</td>
                                             <td>{{.PwdPs}}</td>
-                                            <td>&nbsp;<a href="./pwd.php?set=edit&id={{.PwdID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./pwd.php?set=delete&id={{.PwdID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'是否删除加密组 {{.PwdName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a> </td>
+                                            <td>&nbsp;<a href="./pwd?set=edit&id={{.PwdID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./pwd?set=delete&id={{.PwdID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'是否删除加密组 {{.PwdName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a> </td>
                                         </tr>
 {{end}}
                                     </tbody>

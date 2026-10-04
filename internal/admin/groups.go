@@ -29,7 +29,7 @@ type TableGroupData struct {
 	LinkCount map[int]int
 }
 
-// GroupPage 分组管理 group.php
+// GroupPage 分组管理 group
 func (h *Handler) GroupPage(c *gin.Context) {
 	set := c.Query("set")
 	if c.Request.Method == http.MethodPost {
@@ -69,13 +69,13 @@ func (h *Handler) GroupPage(c *gin.Context) {
 	if set == "edit" {
 		row, err := h.GroupSvc.Get(queryInt(c, "id"))
 		if err != nil {
-			h.renderHTML(c, alert("提示", "当前记录不存在！", "./group.php"))
+			h.renderHTML(c, alert("提示", "当前记录不存在！", "./group"))
 			return
 		}
 		gp.Edit = &row
 		gp.IconType, gp.IconVal = groupIconType(row.GroupIcon)
 	}
-	data := h.newData(c, "分组管理", "group.php", "group")
+	data := h.newData(c, "分组管理", "group", "group")
 	data.Page = gp
 	h.render(c, "group.html", data)
 }
@@ -108,7 +108,7 @@ func (h *Handler) groupAdd(c *gin.Context) {
 		h.renderHTML(c, notify("添加分组失败", "danger", 3000))
 		return
 	}
-	h.renderHTML(c, alert("成功", "添加分组 "+htmlEscape(rec.GroupName)+" 成功！", "./group.php"))
+	h.renderHTML(c, alert("成功", "添加分组 "+htmlEscape(rec.GroupName)+" 成功！", "./group"))
 }
 
 func (h *Handler) groupEdit(c *gin.Context) {
@@ -131,7 +131,7 @@ func (h *Handler) groupEdit(c *gin.Context) {
 			return
 		}
 	}
-	h.renderHTML(c, alert("成功", "修改分组 "+htmlEscape(rec.GroupName)+" 成功！", "./group.php"))
+	h.renderHTML(c, alert("成功", "修改分组 "+htmlEscape(rec.GroupName)+" 成功！", "./group"))
 }
 
 func (h *Handler) setGroupStatus(c *gin.Context, status int) {
@@ -154,7 +154,7 @@ func (h *Handler) groupSort(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// TableGroup table_group.php 片段
+// TableGroup table_group 片段
 func (h *Handler) TableGroup(c *gin.Context) {
 	list, err := h.GroupSvc.List()
 	if err != nil {
@@ -168,7 +168,7 @@ func (h *Handler) TableGroup(c *gin.Context) {
 		td.LinkCount = list.LinkCount
 	}
 
-	data := h.newData(c, "", "table_group.php", "group")
+	data := h.newData(c, "", "table_group", "group")
 	data.Page = td
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	if err := h.Engine.Render(c.Writer, "table_group.html", data); err != nil {

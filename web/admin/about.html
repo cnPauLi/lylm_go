@@ -7,12 +7,12 @@
                     <div class="card-body">
                         <h4>修改收录设置</h4>
                         <div class="panel-body">
-                            <form action="./about.php?set=conf_submit" method="POST">
+                            <form action="./about?set=conf_submit" method="POST">
                                 <div class="form-group" id="about">
                                     <label class="d-block w-100" for="web_yan_status">关于页面地址</label>
                                     <p><code>{{.SiteHost}}/about</code></p>
                                     <a class="btn btn-primary" href="{{.SiteHost}}/about" target="_blank">访问关于页面</a>
-                                    <a class="btn btn-danger" href="./about.php?set=default" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定将关于页面内容恢复默认？<br>注意：该操作不可逆',type:'red',buttons:{confirm:{text:'确定恢复',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">恢复默认内容</a>
+                                    <a class="btn btn-danger" href="./about?set=default" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定将关于页面内容恢复默认？<br>注意：该操作不可逆',type:'red',buttons:{confirm:{text:'确定恢复',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">恢复默认内容</a>
                                 </div>
                                 <div class="form-group">
                                     <label for="about">关于页内容</label>

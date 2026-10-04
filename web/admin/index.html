@@ -5,7 +5,7 @@
 		{{if .IsDebug}}
 			<div class="alert alert-warning" role="alert">
 				<i class="mdi mdi-alert mdi-alert-icon"></i>
-				<b>调试模式（DEBUG）已开启</b>：页面将显示详细错误信息，仅排障时使用，正式环境请前往<a href="./user.php#system-security" class="alert-link">系统安全</a>关闭。
+				<b>调试模式（DEBUG）已开启</b>：页面将显示详细错误信息，仅排障时使用，正式环境请前往<a href="./user#system-security" class="alert-link">系统安全</a>关闭。
 			</div>
 		{{end}}
 		<div class="row">
@@ -118,7 +118,7 @@
 					<b>程序名称：</b>六零导航页(LyLme Spage)
 				</li>
 				<li class="list-group-item">
-					<b>主程序版本：</b>v{{.Page.AppVersion}} <a href="./update.php" target="_blank">检查更新</a>
+					<b>主程序版本：</b>v{{.Page.AppVersion}} <a href="./update" target="_blank">检查更新</a>
 				</li>
 				<li class="list-group-item">
 					<b>数据库版本：</b>{{.Page.DBVersion}}
@@ -185,7 +185,7 @@
 	$(function() {
 		const start = Date.now();
 		$.ajax({
-			url: "index.php?check=update",
+			url: "index?check=update",
 			method: "GET",
 			timeout: 30000
 		}).always(function() {

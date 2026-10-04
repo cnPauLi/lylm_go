@@ -1,4 +1,4 @@
-// Package stats 提供与原 lylme_spage/include/tj.php 等价的访问统计：
+// Package stats 提供与原 lylme_spage/include/tj 等价的访问统计：
 // 每日 PV / 独立 IP 日志与累计日志，以及后台仪表盘所需的汇总数据。
 package stats
 

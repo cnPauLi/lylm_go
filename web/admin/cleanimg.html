@@ -34,7 +34,7 @@
                             {{range .Page.Dirs}}
                                 <div class="tab-pane fade{{if eq .Name "download"}} show active{{end}}" id="tab-{{.Name}}">
                                     {{if gt .Unused 0}}
-                                        <form method="post" action="cleanimg.php?action=delete" onsubmit="var f=this;event.preventDefault();$.confirm({title:'警告',content:'确定删除选中的文件吗？删除后不可恢复！',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){f.submit();}},cancel:{text:'取消'}}});return false;" id="delForm-{{.Name}}">
+                                        <form method="post" action="cleanimg?action=delete" onsubmit="var f=this;event.preventDefault();$.confirm({title:'警告',content:'确定删除选中的文件吗？删除后不可恢复！',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){f.submit();}},cancel:{text:'取消'}}});return false;" id="delForm-{{.Name}}">
                                             <div class="m-b-10">
                                                 <button type="button" class="btn btn-danger" onclick="delAll('{{.Name}}')">删除{{.Name}}全部未使用</button>
                                                 <button type="submit" class="btn btn-warning">仅删除选中</button>

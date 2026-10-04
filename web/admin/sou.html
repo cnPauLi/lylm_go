@@ -7,7 +7,7 @@
                     <div class="card-body">
 {{if eq .Page.Set "add"}}
     <h4>新增搜索接</h4>
-    <form id="addSearchForm" action="./ajax_link.php?submit=add_sou" method="POST">
+    <form id="addSearchForm" action="./ajax_link?submit=add_sou" method="POST">
         <div class="form-group">
             <label>*搜索引擎名称: (*必填)</label>
             <input type="text" class="form-control" name="name" value="" required placeholder="如：百度一下">
@@ -37,7 +37,7 @@
         <div class="form-group">
             <label>搜索引擎图标:(*必填)</label>
             <textarea class="form-control" name="icon" placeholder="<svg" required></textarea>
-            <small class="help-block">方案1：粘贴图标的<code>SVG</code>代码(推荐) <a href="./help.php?doc=icon" target="_blank">查看教程</a><br>方案2：使用图片地址，需要img标签</small>
+            <small class="help-block">方案1：粘贴图标的<code>SVG</code>代码(推荐) <a href="./help?doc=icon" target="_blank">查看教程</a><br>方案2：使用图片地址，需要img标签</small>
         </div>
         <div class="form-group">
             <label class="d-block w-100">启用开关</label>
@@ -50,10 +50,10 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="添加">
         </div>
     </form>
-    <br/><a href="./sou.php">&lt;&lt;返回</a>
+    <br/><a href="./sou">&lt;&lt;返回</a>
 {{else if eq .Page.Set "edit"}}
     <h4>修改搜索引擎</h4>
-    <form id="editSearchForm" action="./ajax_link.php?submit=edit_sou&id={{.Page.Edit.SouID}}" method="POST">
+    <form id="editSearchForm" action="./ajax_link?submit=edit_sou&id={{.Page.Edit.SouID}}" method="POST">
         <div class="form-group">
             <label>*搜索引擎名称: (*必填)</label>
             <input type="text" class="form-control" name="name" value="{{.Page.Edit.SouName}}" required placeholder="如：百度一下">
@@ -97,9 +97,9 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="修改">
         </div>
     </form>
-    <br/><a href="./sou.php">&lt;&lt;返回</a>
+    <br/><a href="./sou">&lt;&lt;返回</a>
 {{else}}
-                    <div class="alert alert-info alert-stat"><div><i class="mdi mdi-magnify mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个搜索引擎</div><a href="./sou.php?set=add" class="btn btn-primary btn-sm">新增搜索引擎</a></div>
+                    <div class="alert alert-info alert-stat"><div><i class="mdi mdi-magnify mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个搜索引擎</div><a href="./sou?set=add" class="btn btn-primary btn-sm">新增搜索引擎</a></div>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead><tr><th>排序权重</th><th>名称</th><th>别名</th><th>地址</th><th>状态</th><th>操作</th></tr></thead>
@@ -111,7 +111,7 @@
                                     <td>{{.SouAlias}}</td>
                                     <td>{{.SouLink}}</td>
                                     <td>{{if eq .SouSt 1}}<span class="label label-success">开启</span>{{else}}<span class="label label-danger">关闭</span>{{end}}</td>
-                                    <td><a href="./sou.php?set=edit&id={{.SouID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./sou.php?set=delete&id={{.SouID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定删除 {{.SouName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a></td>
+                                    <td><a href="./sou?set=edit&id={{.SouID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./sou?set=delete&id={{.SouID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定删除 {{.SouName}}',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a></td>
                                 </tr>
                             {{end}}
                             </tbody>

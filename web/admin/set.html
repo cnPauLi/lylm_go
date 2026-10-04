@@ -1,6 +1,6 @@
 {{template "head.html" .}}
 <script>
-	// 通过 file.php 固定文件名白名单上传（LOGO/背景图），返回固定URL后写入文本框
+	// 通过 file 固定文件名白名单上传（LOGO/背景图），返回固定URL后写入文本框
 	function uploadFixed(target, inputId, textId, btnId) {
 		var input = document.getElementById(inputId);
 		if (!input.files || !input.files[0]) {
@@ -11,7 +11,7 @@
 		var fd = new FormData();
 		fd.append('file', input.files[0]);
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', '../include/file.php?target=' + target, true);
+		xhr.open('POST', '../include/file?target=' + target, true);
 		xhr.onreadystatechange = function () {
 			if (xhr.readyState !== 4) {
 				return;
@@ -47,7 +47,7 @@
 				<div class="card">
 					<div class="tab-content">
 						<div class="tab-pane active">
-							<form action="set.php?set=save" method="post" name="edit-form" class="edit-form" enctype="multipart/form-data">
+							<form action="set?set=save" method="post" name="edit-form" class="edit-form" enctype="multipart/form-data">
 								<div class="form-group">
 									<label for="web_site_title">网站标题</label>
 									<input class="form-control" type="text" id="web_site_title" name="title" value="{{.Cfg "title"}}" placeholder="请输入站点标题" required>
@@ -72,7 +72,7 @@
 											<input type="file" style="display:none" accept=".png,.jpeg,.jpg,.gif,.webp" id="backgroundimg" name="backgroundimg" onchange="uploadFixed('web_background', 'backgroundimg', 'web_site_background', 'checkbackground');" />
 										</div>
 									</div>
-									<small class="help-block">填写图片的URL,如：<code>/assets/img/background.jpg</code>或从<code>本地上传</code><br>设置Bing每日壁纸：<code>/assets/img/bing.php</code><br>注：修改后需要清除浏览器缓存才会改变</small>
+									<small class="help-block">填写图片的URL,如：<code>/assets/img/background.jpg</code>或从<code>本地上传</code><br>设置Bing每日壁纸：<code>/assets/img/bing</code><br>注：修改后需要清除浏览器缓存才会改变</small>
 								</div>
 								<div class="form-group">
 									<label for="wap_site_background">手机端背景图片</label>

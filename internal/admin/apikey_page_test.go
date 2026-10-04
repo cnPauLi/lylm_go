@@ -101,7 +101,7 @@ func postForm(t *testing.T, cl *http.Client, rawurl string, vals url.Values) (in
 	return resp.StatusCode, string(body)
 }
 
-// ajaxResp ajax_mcp.php 响应结构
+// ajaxResp ajax_mcp 响应结构
 type ajaxResp struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
@@ -152,15 +152,15 @@ func TestMCPPageLoginProtect(t *testing.T) {
 			return http.ErrUseLastResponse
 		},
 	}
-	resp, err := noRedirect.Get(baseURL + "/admin/mcp.php")
+	resp, err := noRedirect.Get(baseURL + "/admin/mcp")
 	if err != nil {
-		t.Fatalf("GET mcp.php 失败: %v", err)
+		t.Fatalf("GET mcp 失败: %v", err)
 	}
 	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusFound {
 		t.Fatalf("未登录状态码 = %d, 期望 302", resp.StatusCode)
 	}
-	if loc := resp.Header.Get("Location"); !strings.HasSuffix(loc, "/admin/login.php") {
+	if loc := resp.Header.Get("Location"); !strings.HasSuffix(loc, "/admin/login") {
 		t.Fatalf("跳转地址 = %q, 期望登录页", loc)
 	}
 }
@@ -171,13 +171,13 @@ func TestMCPPageAndAjax(t *testing.T) {
 
 	// 未登录 POST：frag 中间件输出跳转脚本，不执行密钥操作
 	anon := &http.Client{}
-	_, body := postForm(t, anon, baseURL+"/admin/ajax_mcp.php?set=ensure", url.Values{})
-	if !strings.Contains(body, "login.php") {
+	_, body := postForm(t, anon, baseURL+"/admin/ajax_mcp?set=ensure", url.Values{})
+	if !strings.Contains(body, "./login") {
 		t.Fatalf("未登录 POST 应输出登录跳转脚本，实际 %q", body)
 	}
 
 	cl, token := loginClient(t, baseURL)
-	endpoint := baseURL + "/admin/ajax_mcp.php"
+	endpoint := baseURL + "/admin/ajax_mcp"
 
 	// 缺少 CSRF token
 	_, body = postForm(t, cl, endpoint+"?set=ensure", url.Values{})
@@ -242,9 +242,9 @@ func TestMCPPageAndAjax(t *testing.T) {
 	}
 
 	// 页面渲染：包含 key、Bearer 配置与接入地址
-	pageResp, err := cl.Get(baseURL + "/admin/mcp.php")
+	pageResp, err := cl.Get(baseURL + "/admin/mcp")
 	if err != nil {
-		t.Fatalf("GET mcp.php 失败: %v", err)
+		t.Fatalf("GET mcp 失败: %v", err)
 	}
 	pb, _ := io.ReadAll(pageResp.Body)
 	_ = pageResp.Body.Close()
@@ -285,9 +285,9 @@ func TestMCPPageAndAjax(t *testing.T) {
 	}
 
 	// 页面与新 key 一致，且不再包含旧 key
-	pageResp2, err := cl.Get(baseURL + "/admin/mcp.php")
+	pageResp2, err := cl.Get(baseURL + "/admin/mcp")
 	if err != nil {
-		t.Fatalf("再次 GET mcp.php 失败: %v", err)
+		t.Fatalf("再次 GET mcp 失败: %v", err)
 	}
 	pb2, _ := io.ReadAll(pageResp2.Body)
 	_ = pageResp2.Body.Close()

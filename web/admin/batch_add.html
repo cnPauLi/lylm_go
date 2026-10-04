@@ -100,7 +100,7 @@
 
             {{if eq .Page.Mode "quick"}}
                 <div class="tip" id="tip"></div>
-                <form id="quickAddForm" action="./ajax_link.php?submit=add_link" method="POST" autocomplete="off">
+                <form id="quickAddForm" action="./ajax_link?submit=add_link" method="POST" autocomplete="off">
                     <div class="form-group">
                         <label>链接地址<span class="req">*</span></label>
                         <div class="input-group">
@@ -304,7 +304,7 @@
                 var fd = new FormData();
                 fd.append('url', iconUrl);
                 fd.append('referer', referer);
-                postForm('../include/file.php', fd).then(function(txt) {
+                postForm('../include/file', fd).then(function(txt) {
                     try {
                         var d = JSON.parse(txt);
                         resolve(d && d.code == '200' && d.url ? d.url : '');
@@ -334,7 +334,7 @@
                     document.getElementById('urlInput').value = url;
                 }
                 showTip('正在抓取网站信息...', 'loading');
-                getXhr('ajax_link.php?submit=geturl&url=' + encodeURIComponent(url), 15000).then(function(d) {
+                getXhr('ajax_link?submit=geturl&url=' + encodeURIComponent(url), 15000).then(function(d) {
                     if (!d) {
                         showTip('获取失败，目标网站无法访问或防火墙限制，请手动填写', 'error');
                         return;
@@ -525,7 +525,7 @@
                     showToast('名称不能为空', 'error');
                     return;
                 }
-                postForm('ajax_link.php?submit=edit_link&id=' + id, fd).then(function(txt) {
+                postForm('ajax_link?submit=edit_link&id=' + id, fd).then(function(txt) {
                     if (txt.indexOf('成功') > -1) {
                         item.querySelector('.res-name').textContent = editName;
                         item.querySelector('.res-edit').textContent = '编辑';
@@ -576,7 +576,7 @@
                                 desc = '',
                                 kw = '';
                             if (autoFetch) {
-                                var info = await getXhr('ajax_link.php?submit=geturl&url=' + encodeURIComponent(u), 10000);
+                                var info = await getXhr('ajax_link?submit=geturl&url=' + encodeURIComponent(u), 10000);
                                 if (info) {
                                     if (info.title) name = truncateText(info.title, 255);
                                     if (info.icon) icon = info.icon;
@@ -603,7 +603,7 @@
                             fd.append('color', '');
                             var raw2 = '';
                             try {
-                                raw2 = await postForm('ajax_link.php?submit=add_link', fd);
+                                raw2 = await postForm('ajax_link?submit=add_link', fd);
                             } catch (e) {
                                 raw2 = '';
                             }

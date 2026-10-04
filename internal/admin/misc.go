@@ -16,7 +16,7 @@ import (
 	"lylme_spage/internal/theme"
 )
 
-// ===================== 搜索引擎 sou.php =====================
+// ===================== 搜索引擎 sou =====================
 
 // souPage 搜索引擎模板数据
 type souPage struct {
@@ -35,7 +35,7 @@ func (h *Handler) SouPage(c *gin.Context) {
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
 		}
-		h.renderHTML(c, alert("成功", "删除成功！", "./sou.php"))
+		h.renderHTML(c, alert("成功", "删除成功！", "./sou"))
 		return
 	}
 
@@ -51,17 +51,17 @@ func (h *Handler) SouPage(c *gin.Context) {
 	if set == "edit" {
 		row, err := h.SouSvc.Get(queryInt(c, "id"))
 		if err != nil {
-			h.renderHTML(c, `<div class="alert alert-warning">该搜索引擎不存在！</div><a href="./sou.php">&lt;&lt;返回</a>`)
+			h.renderHTML(c, `<div class="alert alert-warning">该搜索引擎不存在！</div><a href="./sou">&lt;&lt;返回</a>`)
 			return
 		}
 		sp.Edit = &row
 	}
-	data := h.newData(c, "搜索引擎设置", "sou.php", "sou")
+	data := h.newData(c, "搜索引擎设置", "sou", "sou")
 	data.Page = sp
 	h.render(c, "sou.html", data)
 }
 
-// ===================== 导航菜单 tag.php =====================
+// ===================== 导航菜单 tag =====================
 
 // tagPage 导航菜单模板数据
 type tagPage struct {
@@ -80,7 +80,7 @@ func (h *Handler) TagPage(c *gin.Context) {
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
 		}
-		h.renderHTML(c, alert("成功", "删除成功！", "./tag.php"))
+		h.renderHTML(c, alert("成功", "删除成功！", "./tag"))
 		return
 	}
 
@@ -94,17 +94,17 @@ func (h *Handler) TagPage(c *gin.Context) {
 	if set == "edit" {
 		row, err := h.TagSvc.Get(queryInt(c, "id"))
 		if err != nil {
-			h.renderHTML(c, alert("提示", "当前记录不存在！", "./tag.php"))
+			h.renderHTML(c, alert("提示", "当前记录不存在！", "./tag"))
 			return
 		}
 		tp.Edit = &row
 	}
-	data := h.newData(c, "导航菜单管理", "tag.php", "tag")
+	data := h.newData(c, "导航菜单管理", "tag", "tag")
 	data.Page = tp
 	h.render(c, "tag.html", data)
 }
 
-// ===================== 加密组 pwd.php =====================
+// ===================== 加密组 pwd =====================
 
 // pwdPage 加密组模板数据
 type pwdPage struct {
@@ -132,7 +132,7 @@ func (h *Handler) PwdPage(c *gin.Context) {
 			h.renderHTML(c, alert("错误", "删除失败！", ""))
 			return
 		}
-		h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)
+		h.renderHTML(c, `<script>window.location.href="./pwd";</script>`)
 		return
 	}
 
@@ -145,12 +145,12 @@ func (h *Handler) PwdPage(c *gin.Context) {
 	if set == "edit" {
 		row, err := h.PwdSvc.Get(queryInt(c, "id"))
 		if err != nil {
-			h.renderHTML(c, `<div class="alert alert-warning">该加密组不存在！</div><a href="./pwd.php">&lt;&lt;返回加密组列表</a>`)
+			h.renderHTML(c, `<div class="alert alert-warning">该加密组不存在！</div><a href="./pwd">&lt;&lt;返回加密组列表</a>`)
 			return
 		}
 		pp.Edit = &row
 	}
-	data := h.newData(c, "加密组管理", "pwd.php", "pwd")
+	data := h.newData(c, "加密组管理", "pwd", "pwd")
 	data.Page = pp
 	h.render(c, "pwd.html", data)
 }
@@ -170,7 +170,7 @@ func (h *Handler) pwdAdd(c *gin.Context) {
 		h.renderHTML(c, alert("错误", "添加失败", ""))
 		return
 	}
-	h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)
+	h.renderHTML(c, `<script>window.location.href="./pwd";</script>`)
 }
 
 func (h *Handler) pwdEdit(c *gin.Context) {
@@ -183,7 +183,7 @@ func (h *Handler) pwdEdit(c *gin.Context) {
 		switch {
 		case errors.Is(err, service.ErrPwdNotFound):
 			// 原版按 WHERE 更新、不校验存在性：不存在时同样输出跳转脚本
-			h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)
+			h.renderHTML(c, `<script>window.location.href="./pwd";</script>`)
 		case errors.Is(err, service.ErrInvalidInput):
 			h.renderHTML(c, alert("错误", "失败，请确保带星号的项目都不为空！", ""))
 		default:
@@ -192,10 +192,10 @@ func (h *Handler) pwdEdit(c *gin.Context) {
 		}
 		return
 	}
-	h.renderHTML(c, `<script>window.location.href="./pwd.php";</script>`)
+	h.renderHTML(c, `<script>window.location.href="./pwd";</script>`)
 }
 
-// ===================== 收录管理 apply.php =====================
+// ===================== 收录管理 apply =====================
 
 // applyPage 收录管理模板数据
 type applyPage struct {
@@ -217,7 +217,7 @@ func (h *Handler) ApplyPage(c *gin.Context) {
 			if err := h.ApplySvc.UpdateSettings(postInt(c, "apply"), c.PostForm("apply_gg")); err != nil {
 				h.Log.Errorf("保存收录设置失败: %v", err)
 			}
-			h.renderHTML(c, alert("成功", "修改成功！", "./apply.php"))
+			h.renderHTML(c, alert("成功", "修改成功！", "./apply"))
 			return
 		case "edit_submit":
 			h.applyEdit(c)
@@ -236,14 +236,14 @@ func (h *Handler) ApplyPage(c *gin.Context) {
 	if set == "edit" {
 		row, err := h.ApplySvc.Get(queryInt(c, "id"))
 		if err != nil {
-			h.renderHTML(c, `<div class="alert alert-warning">该申请记录不存在！</div><a href="./apply.php">&lt;&lt;返回收录管理列表</a>`)
+			h.renderHTML(c, `<div class="alert alert-warning">该申请记录不存在！</div><a href="./apply">&lt;&lt;返回收录管理列表</a>`)
 			return
 		}
 		ap.Edit = &row
 	} else if set != "conf" {
 		ap.Rows = res.Rows
 	}
-	data := h.newData(c, "收录管理", "apply.php", "apply")
+	data := h.newData(c, "收录管理", "apply", "apply")
 	data.Page = ap
 	h.render(c, "apply.html", data)
 }
@@ -264,10 +264,10 @@ func (h *Handler) applyEdit(c *gin.Context) {
 		h.renderHTML(c, notify("修改失败！", "danger", 3000))
 		return
 	}
-	h.renderHTML(c, alert("成功", "修改成功！", "./apply.php"))
+	h.renderHTML(c, alert("成功", "修改成功！", "./apply"))
 }
 
-// AjaxApply ajax_apply.php
+// AjaxApply ajax_apply 入口
 func (h *Handler) AjaxApply(c *gin.Context) {
 	switch c.Query("set") {
 	case "status":
@@ -301,7 +301,7 @@ func (h *Handler) ajaxApplyStatus(c *gin.Context) {
 	jsonWrite(c, gin.H{"code": 200, "msg": "操作成功！"})
 }
 
-// ===================== 主题 theme.php =====================
+// ===================== 主题 theme =====================
 
 // themePage 主题列表模板数据
 type themePage struct {
@@ -314,14 +314,14 @@ func (h *Handler) ThemePage(c *gin.Context) {
 	if set := c.Query("set"); set != "" {
 		if err := h.ThemeSvc.Switch(set); err != nil {
 			h.Log.Errorf("切换主题失败: %v", err)
-			h.renderHTML(c, alert("错误", "主题修改失败！", "./theme.php"))
+			h.renderHTML(c, alert("错误", "主题修改失败！", "./theme"))
 			return
 		}
-		h.renderHTML(c, alert("成功", "主题修改成功！", "./theme.php"))
+		h.renderHTML(c, alert("成功", "主题修改成功！", "./theme"))
 		return
 	}
 	themes, current := h.ThemeSvc.List()
-	data := h.newData(c, "主题设置", "theme.php", "theme")
+	data := h.newData(c, "主题设置", "theme", "theme")
 	data.Page = &themePage{Themes: themes, Current: current}
 	h.render(c, "theme.html", data)
 }
@@ -338,19 +338,19 @@ func (h *Handler) ThemeSettingPage(c *gin.Context) {
 	fields, tpl := h.ThemeSvc.ConfigFields()
 	tp := &themeSettingPage{ThemeName: h.Store.Theme().Info(tpl).Name}
 	if len(fields) == 0 {
-		data := h.newData(c, "主题自定义设置", "theme_setting.php", "theme")
+		data := h.newData(c, "主题自定义设置", "theme_setting", "theme")
 		data.Page = tp
 		h.render(c, "theme_setting.html", data)
 		return
 	}
 	tp.HasConfig = true
 	tp.FormHTML = renderThemeForm(fields, h.ThemeSvc.ConfigValues())
-	data := h.newData(c, "主题自定义设置", "theme_setting.php", "theme")
+	data := h.newData(c, "主题自定义设置", "theme_setting", "theme")
 	data.Page = tp
 	h.render(c, "theme_setting.html", data)
 }
 
-// AjaxTheme ajax_theme.php
+// AjaxTheme ajax_theme 入口
 func (h *Handler) AjaxTheme(c *gin.Context) {
 	if c.Query("set") != "save" || c.Request.Method != http.MethodPost {
 		jsonWrite(c, gin.H{"code": -1, "msg": "非法请求！"})
@@ -381,7 +381,7 @@ func (h *Handler) AjaxTheme(c *gin.Context) {
 // renderThemeForm 依据主题字段定义生成表单 HTML（等价原版 Form/BootstrapForm）
 func renderThemeForm(fields []theme.Field, values map[string]any) gtmpl.HTML {
 	var b strings.Builder
-	b.WriteString(`<form class="form-horizontal" action="ajax_theme.php?set=save" method="post">`)
+	b.WriteString(`<form class="form-horizontal" action="ajax_theme?set=save" method="post">`)
 	for _, f := range fields {
 		val := fieldValue(f, values)
 		b.WriteString(renderThemeField(f, val))
@@ -561,7 +561,7 @@ func truthy(v any) bool {
 func escAttr(s string) string { return gtmpl.HTMLEscapeString(s) }
 func escHTML(s string) string { return gtmpl.HTMLEscapeString(s) }
 
-// ===================== 文件清理 cleanimg.php =====================
+// ===================== 文件清理 cleanimg =====================
 
 // cleanImgFile 单个文件项（后台模板展示结构，由 service.CleanupFile 映射）
 type cleanImgFile struct {
@@ -615,19 +615,19 @@ func (h *Handler) CleanImg(c *gin.Context) {
 		if res.Failed > 0 {
 			msg += "，失败 " + strconv.Itoa(res.Failed) + " 个"
 		}
-		h.renderHTML(c, alert("完成", msg, "cleanimg.php"))
+		h.renderHTML(c, alert("完成", msg, "cleanimg"))
 		return
 	}
 	report, err := h.FileCleanupSvc.Scan()
 	if err != nil {
 		h.Log.Errorf("扫描未使用文件失败: %v", err)
 	}
-	data := h.newData(c, "未使用文件清理", "cleanimg.php", "cleanimg")
+	data := h.newData(c, "未使用文件清理", "cleanimg", "cleanimg")
 	data.Page = toCleanImgPage(report)
 	h.render(c, "cleanimg.html", data)
 }
 
-// ===================== 批量导入 batch_add.php =====================
+// ===================== 批量导入 batch_add =====================
 
 // batchAddPage 批量导入模板数据
 type batchAddPage struct {
@@ -671,25 +671,25 @@ func (h *Handler) BatchAdd(c *gin.Context) {
 	if mode == "batch" {
 		page.BookmarkCode = h.bookmarkCode(c)
 	}
-	data := h.newData(c, "批量导入链接", "batch_add.php", "link")
+	data := h.newData(c, "批量导入链接", "batch_add", "link")
 	data.Page = page
 	h.render(c, "batch_add.html", data)
 }
 
 func (h *Handler) bookmarkCode(c *gin.Context) string {
-	base := siteURL(c, 1) + h.Base() + "/batch_add.php"
+	base := siteURL(c, 1) + h.Base() + "/batch_add"
 	return "javascript:(function(){var u=location.href,t=document.title;void(open('" + base + "?from=bm&url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t),'lylme_quick_add','toolbar=yes,location=yes,directories=no,status=no,menubar=yes,scrollbars=yes,resizable=no,copyhistory=yes,left=200,top=200,width=560,height=780'));})();"
 }
 
-// ===================== 检查更新 update.php =====================
+// ===================== 检查更新 update =====================
 
 // UpdatePage 检查更新页
 func (h *Handler) UpdatePage(c *gin.Context) {
-	data := h.newData(c, "检查更新", "update.php", "update")
+	data := h.newData(c, "检查更新", "update", "update")
 	h.render(c, "update.html", data)
 }
 
-// ===================== 微信推送 wxplus.php =====================
+// ===================== 微信推送 wxplus =====================
 
 // WxPlusPage 微信推送设置
 func (h *Handler) WxPlusPage(c *gin.Context) {
@@ -699,17 +699,17 @@ func (h *Handler) WxPlusPage(c *gin.Context) {
 			h.Log.Errorf("保存微信推送配置失败: %v", err)
 		}
 		if strings.TrimSpace(userkey) == "" {
-			h.renderHTML(c, alert("提示", "微信推送已关闭", "./wxplus.php"))
+			h.renderHTML(c, alert("提示", "微信推送已关闭", "./wxplus"))
 		} else {
-			h.renderHTML(c, alert("成功", "微信推送密钥配置成功", "./wxplus.php"))
+			h.renderHTML(c, alert("成功", "微信推送密钥配置成功", "./wxplus"))
 		}
 		return
 	}
-	data := h.newData(c, "微信推送", "wxplus.php", "wxplus")
+	data := h.newData(c, "微信推送", "wxplus", "wxplus")
 	h.render(c, "wxplus.html", data)
 }
 
-// ===================== 网站授权 license.php =====================
+// ===================== 网站授权 license =====================
 
 // licensePage 授权设置模板数据
 type licensePage struct {
@@ -724,7 +724,7 @@ func (h *Handler) LicensePage(c *gin.Context) {
 		if err := h.ConfigSvc.UpdateLicense(c.PostForm("licensecode"), c.PostForm("hostmode")); err != nil {
 			h.Log.Errorf("保存网站授权配置失败: %v", err)
 		}
-		h.renderHTML(c, alert("成功", "修改成功！", "./license.php"))
+		h.renderHTML(c, alert("成功", "修改成功！", "./license"))
 		return
 	}
 	lic := h.ConfigSvc.License()
@@ -732,12 +732,12 @@ func (h *Handler) LicensePage(c *gin.Context) {
 	if lic.HostMode == "1" {
 		hostMode = 1
 	}
-	data := h.newData(c, "网站授权设置", "license.php", "license")
+	data := h.newData(c, "网站授权设置", "license", "license")
 	data.Page = &licensePage{HostMode: hostMode, Host1: siteURL(c, 1), Host2: siteURL(c, 2)}
 	h.render(c, "license.html", data)
 }
 
-// ===================== 帮助 help.php =====================
+// ===================== 帮助 help =====================
 
 // HelpPage SVG 图标帮助
 func (h *Handler) HelpPage(c *gin.Context) {
@@ -745,6 +745,6 @@ func (h *Handler) HelpPage(c *gin.Context) {
 		h.renderHTML(c, alert("错误", "无效的访问！", ""))
 		return
 	}
-	data := h.newData(c, "SVG代码获取教程", "help.php", "")
+	data := h.newData(c, "SVG代码获取教程", "help", "")
 	h.render(c, "help.html", data)
 }

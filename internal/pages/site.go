@@ -116,7 +116,7 @@ func SiteDetail(cfg *config.Config, store *site.Store, engine *Engine, log *logg
 	}
 }
 
-// collectInfo 复刻 site/common.php 的描述/关键词采集与回写逻辑
+// collectInfo 复刻原版 site/common 的描述/关键词采集与回写逻辑
 func collectInfo(cfg *config.Config, store *site.Store, log *logger.Logger, link *models.Link) map[string]any {
 	if link.LinkDesc != "" && link.LinkKeywords != "" {
 		return map[string]any{

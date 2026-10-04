@@ -15,7 +15,7 @@ import (
 	"lylme_spage/internal/webutil"
 )
 
-// PasswordHandler 实现 /include/go.php：跳转、访问密码登录与注销
+// PasswordHandler 实现 /include/go：跳转、访问密码登录与注销
 func PasswordHandler(store *site.Store, log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		referer := c.Request.Referer()

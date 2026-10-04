@@ -8,7 +8,7 @@
 {{if eq .Page.Set "add"}}
 <h4>新增导航菜单链接</h4>
 <div class="panel-body">
-<form id="addNavLinkForm" action="./ajax_link.php?submit=add_tag" method="POST">
+<form id="addNavLinkForm" action="./ajax_link?submit=add_tag" method="POST">
 <div class="form-group">
 <label>*名称:</label><br>
 <input type="text" class="form-control" name="name" value="" required>
@@ -33,12 +33,12 @@
 <input type="submit" class="btn btn-primary d-block w-100" value="添加">
 </div>
 </form>
-<br/><a href="./tag.php">&lt;&lt;返回</a>
+<br/><a href="./tag">&lt;&lt;返回</a>
 </div>
 {{else if eq .Page.Set "edit"}}
 <h4>修改导航菜单链接</h4>
 <div class="panel-body">
-<form id="editNavLinkForm" action="./ajax_link.php?submit=edit_tag&id={{.Page.Edit.TagID}}" method="POST">
+<form id="editNavLinkForm" action="./ajax_link?submit=edit_tag&id={{.Page.Edit.TagID}}" method="POST">
 <div class="form-group">
 <label>*名称:</label><br>
 <input type="text" class="form-control" name="name" value="{{.Page.Edit.TagName}}" required>
@@ -63,16 +63,16 @@
 <input type="submit" class="btn btn-primary d-block w-100" value="修改">
 </div>
 </form>
-<br/><a href="./tag.php">&lt;&lt;返回</a>
+<br/><a href="./tag">&lt;&lt;返回</a>
 </div>
 {{else}}
-<div class="alert alert-info alert-stat"><div><i class="mdi mdi-tag-multiple mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个导航菜单</div><a href="./tag.php?set=add" class="btn btn-primary btn-sm">新增导航菜单</a></div>
+<div class="alert alert-info alert-stat"><div><i class="mdi mdi-tag-multiple mdi-alert-icon"></i>系统共有 <b>{{.Page.Total}}</b> 个导航菜单</div><a href="./tag?set=add" class="btn btn-primary btn-sm">新增导航菜单</a></div>
       <div class="table-responsive">
         <table class="table table-striped">
           <thead><tr><th>排序权重</th><th>名称</th><th>链接</th><th>操作</th></tr></thead>
           <tbody>
 {{range .Page.Rows}}
-<tr><td>{{.Sort}}</td><td>{{.TagName}}</td><td>{{.TagLink}}</td><td><a href="./tag.php?set=edit&id={{.TagID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./tag.php?set=delete&id={{.TagID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定删除 {{.TagName}} ？',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a></td></tr>
+<tr><td>{{.Sort}}</td><td>{{.TagName}}</td><td>{{.TagLink}}</td><td><a href="./tag?set=edit&id={{.TagID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;<a href="./tag?set=delete&id={{.TagID}}" class="btn btn-xs btn-danger" onclick="var h=this.href;event.preventDefault();$.confirm({title:'警告',content:'确定删除 {{.TagName}} ？',type:'red',buttons:{confirm:{text:'删除',btnClass:'btn-danger',action:function(){window.location.href=h;}},cancel:{text:'取消'}}});return false;">删除</a></td></tr>
 {{end}}
           </tbody>
         </table>

@@ -27,7 +27,7 @@ function listTable(query, keepLayer) {
     var ii = layer.load(2, { shade: [0.1, '#fff'] });
     $.ajax({
         type: 'GET',
-        url: 'table_link.php?' + query,
+        url: 'table_link?' + query,
         dataType: 'html',
         cache: false,
         success: function (data) {
@@ -88,7 +88,7 @@ function on_link(id) {
     }
     lightyear.loading('show');
     $.ajax({
-        url: "ajax_link.php?submit=on",
+        url: "ajax_link?submit=on",
         method: "POST",
         data: { links: links },
         success: function (data) {
@@ -129,7 +129,7 @@ function off_link(id) {
 
     lightyear.loading('show');
     $.ajax({
-        url: "ajax_link.php?submit=off",
+        url: "ajax_link?submit=off",
         method: "POST",
         data: { links: links },
         success: function (data) {
@@ -164,7 +164,7 @@ function geturl() {
     }
 
     $.ajax({
-        url: "ajax_link.php?submit=geturl",
+        url: "ajax_link?submit=geturl",
         type: "GET",
         dataType: "json",
         data: { url: url },
@@ -193,7 +193,7 @@ function geturl() {
 //抓取网站图标
 function downloadimg(url, referer) {
     $.ajax({
-        url: "/include/file.php",
+        url: "/include/file",
         type: "POST",
         dataType: "json",
         data: { url: url, referer: referer },
@@ -221,7 +221,7 @@ function uploadimg(el) {
     formData.append("file", fileInput.files[0]);
     $.ajax({
         method: 'POST',
-        url: '/include/file.php',
+        url: '/include/file',
         data: formData,
         timeout: 20000,
         cache: false,
@@ -264,7 +264,7 @@ function del_link(id) {
                 action: function () {
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_link.php?submit=del",
+                        url: "ajax_link?submit=del",
                         method: "POST",
                         data: {
                             links: link_id
@@ -337,7 +337,7 @@ function save_order() {
 
     lightyear.loading('show');
     $.ajax({
-        url: "ajax_link.php?submit=allorder",
+        url: "ajax_link?submit=allorder",
         method: "POST",
         data: { link_array: link_array },
         dataType: 'json',
@@ -440,7 +440,7 @@ function edit_group(mv_group) {
                     }
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_link.php?submit=set_group",
+                        url: "ajax_link?submit=set_group",
                         method: "POST",
                         data: { links: get_check(), group_id: group_id },
                         success: function (data) {
@@ -489,7 +489,7 @@ function pwd_link(pwd_list) {
                     }
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_link.php?submit=pwd_link",
+                        url: "ajax_link?submit=pwd_link",
                         method: "POST",
                         data: { links: get_check(), pwd_id: pwd_id },
                         success: function (data) {
@@ -619,7 +619,7 @@ var check_group_links = function () {
                     } else if (scope === 'all') {
                         // 整站所有链接：异步拉取全站数据后再检测
                         lightyear.loading('show');
-                        getXhr('ajax_link.php?submit=all_links', 20000).then(function (data) {
+                        getXhr('ajax_link?submit=all_links', 20000).then(function (data) {
                             lightyear.loading('hide');
                             if (!data || data.code != 200 || !data.links || data.links.length == 0) {
                                 layer.msg('未获取到全站链接');
@@ -744,7 +744,7 @@ function do_check(items, scopeLabel) {
         }
         setItem(it._i, '<font color="#ffc107"><i class="mdi mdi-sync mdi-spin"></i> [服务器检测]</font> <span class="text-muted">' + esc(testUrl) + '</span>');
         // 第一步：服务端抓取（同批量导入 geturl），能取到即判定可访问并显示标题
-        getXhr('ajax_link.php?submit=geturl&url=' + encodeURIComponent(testUrl), timeout).then(function (data) {
+        getXhr('ajax_link?submit=geturl&url=' + encodeURIComponent(testUrl), timeout).then(function (data) {
             if (_checkCtrl && _checkCtrl.stopped) return;
             if (data && (data.code == 200 || data.title)) {
                 doneOne(it, true, data.title);
@@ -817,7 +817,7 @@ function del_failed_link(id) {
                 action: function () {
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_link.php?submit=del",
+                        url: "ajax_link?submit=del",
                         method: "POST",
                         data: { links: [id] },
                         success: function (data) {
@@ -896,7 +896,7 @@ function edit_link(id) {
         title: '编辑链接 #' + id,
         area: isMobile ? ['96%', '92%'] : ['620px', '86%'],
         shadeClose: false,
-        content: 'ajax_link.php?submit=edit_form&id=' + id
+        content: 'ajax_link?submit=edit_form&id=' + id
     });
 }
 

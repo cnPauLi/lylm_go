@@ -15,7 +15,7 @@ type GroupInput struct {
 	Pwd  int
 }
 
-// GroupList 分组列表数据：供后台 group.php 页面与 table_group.php 片段共用
+// GroupList 分组列表数据：供后台分组页与分组列表片段共用
 type GroupList struct {
 	Total     int64
 	Groups    []models.Group
@@ -36,7 +36,7 @@ func NewGroupService(store *site.Store) *GroupService {
 
 // List 返回全部分组（group_order ASC）、加密组及其映射、各组链接数与总数。
 // 各查询相互独立：分组查询失败时返回该错误，加密组/计数查询失败不阻断其余数据
-// （与原 table_group.php 行为一致）。
+// （与原版分组列表行为一致）。
 func (s *GroupService) List() (*GroupList, error) {
 	db := s.store.DB()
 	out := &GroupList{PwdMap: map[int]string{}, LinkCount: map[int]int{}}

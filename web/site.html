@@ -99,7 +99,7 @@
                 <a href="{{ .Page.URLHref }}" rel="nofollow" target="_blank" class="btn btn-primary">立即访问 <i class="fa fa-paper-plane"></i></a>
                 <div class="urls-tools-qr">
                     <a href="javascript:void(0);" class="btn btn-ghost">手机查看 <i class="fa fa-qrcode"></i></a>
-                    <span id="code"><img width="120" height="120" src="/include/qrcode.php?text={{ .Page.URLHref }}"></span>
+                    <span id="code"><img width="120" height="120" src="/include/qrcode?text={{ .Page.URLHref }}"></span>
                 </div>
                 <a href="javascript:void(0);" class="btn btn-ghost" onclick="copyLink()">复制链接 <i class="fa fa-link"></i></a>
             </div>

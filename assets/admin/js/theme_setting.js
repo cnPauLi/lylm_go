@@ -17,7 +17,7 @@ $(function() {
     }
 
     // 监听表单提交（AJAX 保存）
-    $(document).on('submit', 'form.form-horizontal, form[action*="ajax_theme.php"]', function(e) {
+    $(document).on('submit', 'form.form-horizontal, form[action*="ajax_theme"]', function(e) {
         e.preventDefault();
         var $form = $(this);
         $.post($form.attr('action'), $form.serialize(), function(res) {
@@ -102,7 +102,7 @@ $(function() {
                 var fd = new FormData();
                 fd.append('file', file);
                 var xhr = new XMLHttpRequest();
-                xhr.open('POST', '../include/file.php?crop=no', true);
+                xhr.open('POST', '../include/file?crop=no', true);
                 xhr.upload.onprogress = function(evt) {
                     if (evt.lengthComputable) {
                         var pct = Math.round(evt.loaded / evt.total * 100) + '%';

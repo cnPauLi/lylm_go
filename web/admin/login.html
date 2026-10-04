@@ -127,7 +127,7 @@
           <div class="form-group has-feedback feedback-left captcha-row mb-3">
             <input type="text" name="authcode" autocomplete="off" class="form-control" placeholder="验证码" required>
             <span class="mdi mdi-check form-control-feedback" aria-hidden="true"></span>
-            <img id="captcha_img" title="验证码" src='../include/validatecode.php' class="captcha-img" onclick="recode()" />
+            <img id="captcha_img" title="验证码" src='../include/validatecode' class="captcha-img" onclick="recode()" />
           </div>
         {{end}}
         <div class="form-group mb-0">
@@ -153,7 +153,7 @@
     });
 
     function recode() {
-      $('#captcha_img').attr('src', '../include/validatecode.php?r=' + Math.random());
+      $('#captcha_img').attr('src', '../include/validatecode?r=' + Math.random());
       $("input[name='authcode']").val('');
     }
   </script>

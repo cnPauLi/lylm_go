@@ -22,7 +22,7 @@ var (
 	bingStartRe = regexp.MustCompile(`(?is)<fullstartdate>(.+?)</fullstartdate>`)
 )
 
-// Qrcode 二维码 /include/qrcode.php?text=
+// Qrcode 二维码 /include/qrcode?text=
 func Qrcode(log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		text := c.Query("text")
@@ -46,7 +46,7 @@ func Qrcode(log *logger.Logger) gin.HandlerFunc {
 	}
 }
 
-// BingImage Bing 每日壁纸 /assets/img/bing.php
+// BingImage Bing 每日壁纸 /assets/img/bing
 func BingImage(log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		body, err := fetch.Get("http://cn.bing.com/HPImageArchive.aspx?idx=0&n=1")
@@ -76,14 +76,14 @@ func writeBingError(c *gin.Context) {
 	c.String(http.StatusNotFound, "Error: Invalid image URL.")
 }
 
-// CronImage 缓存 Bing 壁纸 /assets/img/cron.php?key=
+// CronImage 缓存 Bing 壁纸 /assets/img/cron?key=
 func CronImage(cfg *config.Config, store *site.Store, log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Content-Type", "text/html; charset=utf-8")
 
 		key := c.Query("key")
 		if key == "" {
-			_, _ = c.Writer.WriteString("错误：密钥为空，请传入包含参数key的GET请求<br>\n    请求示例：<b>http://" + c.Request.Host + "/assets/img/cron.php?key=秘钥</b>")
+			_, _ = c.Writer.WriteString("错误：密钥为空，请传入包含参数key的GET请求<br>\n    请求示例：<b>http://" + c.Request.Host + "/assets/img/cron?key=秘钥</b>")
 			return
 		}
 		pass := store.Get("cron_key", "")

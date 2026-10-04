@@ -21,7 +21,7 @@
 {{if eq .Page.Set "edit"}}
 {{if .Page.Edit}}
     <h4>修改链接信息</h4>
-    <form action="./apply.php?set=edit_submit&id={{.Page.Edit.ApplyID}}" method="POST">
+    <form action="./apply?set=edit_submit&id={{.Page.Edit.ApplyID}}" method="POST">
         <div class="form-group">
             <label for="apply_name">*名称:</label>
             <input type="text" id="apply_name" class="form-control" name="apply_name" value="{{.Page.Edit.ApplyName}}" required>
@@ -33,7 +33,7 @@
         <div class="form-group">
             <label for="apply_icon">图标:</label>
             <textarea id="apply_icon" class="form-control" name="apply_icon" rows="3">{{.Page.Edit.ApplyIcon}}</textarea>
-            <small class="help-block">方式1：填写图标的<code>URL</code>地址<br>方式2：粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a><br>方式3：留空使用默认图标</small>
+            <small class="help-block">方式1：填写图标的<code>URL</code>地址<br>方式2：粘贴图标的<code>SVG</code>代码，<a href="./help?doc=icon" target="_blank">查看教程</a><br>方式3：留空使用默认图标</small>
         </div>
         <div class="form-group">
             <label for="apply_group">*分组:</label>
@@ -47,11 +47,11 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="确定修改">
         </div>
     </form>
-    <br/><a href="./apply.php">&lt;&lt;返回收录管理列表</a>
+    <br/><a href="./apply">&lt;&lt;返回收录管理列表</a>
 {{end}}
 {{else if eq .Page.Set "conf"}}
     <h4>修改收录设置</h4>
-    <form action="./apply.php?set=conf_submit" method="POST">
+    <form action="./apply?set=conf_submit" method="POST">
         <div class="form-group">
             <label for="apply_status">申请收录</label>
             <select class="form-control" id="apply_status" name="apply">
@@ -69,12 +69,12 @@
             <input type="submit" class="btn btn-primary d-block w-100" value="保存">
         </div>
     </form>
-    <br/><a href="./apply.php">&lt;&lt;返回收录管理列表</a>
+    <br/><a href="./apply">&lt;&lt;返回收录管理列表</a>
 {{else}}
                     <div class="alert alert-info">
                         <div class="alert-stat">
                             <div><i class="mdi mdi-bell-ring-outline mdi-alert-icon"></i>收录申请统计： <b>{{.Page.ApplyRows}}</b> 次&nbsp;|&nbsp;收录申请开关： <b>{{if eq (.Cfg "apply") "1"}}开启-无需审核{{else if eq (.Cfg "apply") "2"}}关闭-关闭申请{{else}}开启-需要审核{{end}}</b></div>
-                            <a href="./apply.php?set=conf" class="btn btn-primary btn-sm">修改设置</a>
+                            <a href="./apply?set=conf" class="btn btn-primary btn-sm">修改设置</a>
                         </div>
                         <div class="mt-2">申请收录地址：<code>{{.Page.SiteHost}}/apply</code> <a href="{{.Page.SiteHost}}/apply" target="_blank">访问</a></div>
                         <span class="alert-help">已审核的图标会被隐藏，点击图标可重新加载<br>部分网站图标一直处于加载或无法显示，可能原因：无法访问或跨域问题，建议建将图标本地化</span>
@@ -119,7 +119,7 @@
                                             </td>
                                             <td>{{$row.ApplyName}}</td>
                                             <td>{{$row.ApplyURL}}</td>
-                                            <td><a class="btn btn-purple btn-xs" href="../include/go.php?url={{$row.ApplyURL}}" target="_blank">访问</a></td>
+                                            <td><a class="btn btn-purple btn-xs" href="../include/go?url={{$row.ApplyURL}}" target="_blank">访问</a></td>
                                             <td>{{if index $.Page.GroupMap $row.ApplyGroup}}{{index $.Page.GroupMap $row.ApplyGroup}}{{else}}{{$row.ApplyGroup}}{{end}}</td>
                                             <td>
 {{if eq $row.ApplyStatus 2}}<font color="#f96868">已拒绝</font>
@@ -131,7 +131,7 @@
                                             </td>
                                             <td>
 {{if eq $row.ApplyStatus 0}}
-                                                <a href="./apply.php?set=edit&id={{$row.ApplyID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;
+                                                <a href="./apply?set=edit&id={{$row.ApplyID}}" class="btn btn-info btn-xs">编辑</a>&nbsp;
 {{end}}
                                                 <button class="btn btn-xs btn-danger" onclick="deletes({{$row.ApplyID}})">删除</button>
                                             </td>

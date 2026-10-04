@@ -7,7 +7,7 @@
         <div class="card">
           <div class="card-body">
           <h4>账户安全</h4>
-            <form method="post" action="user.php?set=save" class="site-form">
+            <form method="post" action="user?set=save" class="site-form">
               <div class="form-group">
                 <label for="username">当前用户名</label>
                 <input type="text" class="form-control" name="username" id="username" value="{{.Cfg "admin_user"}}" disabled="disabled">
@@ -38,7 +38,7 @@
           <div class="card-body">
           <h4>系统安全</h4>
             <p class="text-danger">非必要请勿修改，修改错误可能导致后台无法访问！</p>
-            <form method="post" action="user.php?set=syssave" class="site-form">
+            <form method="post" action="user?set=syssave" class="site-form">
               <div class="form-group">
                 <label for="admin-path">后台目录（ADMIN_PATH）</label>
                 <div class="input-group">
@@ -65,7 +65,7 @@
           <div class="card-body">
             <div class="form-group">
             <h4>文件安全</h4>
-             <p> <a href="./filecheck.php">文件完整性校验</a></p>
+             <p> <a href="./filecheck">文件完整性校验</a></p>
             </div>
           </div>
         </div>

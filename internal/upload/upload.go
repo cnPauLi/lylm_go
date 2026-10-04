@@ -41,7 +41,7 @@ type result struct {
 	URL  string `json:"url,omitempty"`
 }
 
-// Handler 实现 /include/file.php（图片上传 / 远程抓取）
+// Handler 实现 /include/file（图片上传 / 远程抓取）
 func Handler(cfg *config.Config, store *site.Store, log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rawURL := c.PostForm("url")

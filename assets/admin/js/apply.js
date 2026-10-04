@@ -26,7 +26,7 @@ function checked_status(status) {
     }
     lightyear.loading('show');
     $.ajax({
-        url: "ajax_apply.php?set=status",
+        url: "ajax_apply?set=status",
         method: "POST",
         data: {
             id: get_check(),
@@ -71,7 +71,7 @@ function checked_del(id) {
                 action: function () {
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_apply.php?set=delete",
+                        url: "ajax_apply?set=delete",
                         method: "POST",
                         data: {
                             id: link_id
@@ -105,7 +105,7 @@ function checked_del(id) {
 //审核状态
 function status(id, status) {
     $.ajax({
-        url: "ajax_apply.php?set=status",
+        url: "ajax_apply?set=status",
         type: "POST",
         dataType: "json",
         data: {
@@ -143,7 +143,7 @@ function deletes(id) {
                 action: function () {
                     lightyear.loading('show');
                     $.ajax({
-                        url: "ajax_apply.php?set=delete",
+                        url: "ajax_apply?set=delete",
                         method: "POST",
                         data: {
                             id: id

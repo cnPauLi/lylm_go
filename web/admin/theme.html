@@ -8,7 +8,7 @@
             <h4>主题设置 <a href="https://spage.lylme.com/themes" target="_blank">更多主题 &gt;&gt;</a></h4>
           </div>
           <div class="card-body">
-            <a href="./theme_setting.php" class="btn btn-label btn btn-default mb-2"><label><i class="mdi mdi-contrast-circle"></i></label>主题自定义设置</a>
+            <a href="./theme_setting" class="btn btn-label btn btn-default mb-2"><label><i class="mdi mdi-contrast-circle"></i></label>主题自定义设置</a>
             <div class="table-responsive">
               <table class="table">
                 <thead>
@@ -34,7 +34,7 @@
 {{if eq $.Page.Current .Dir}}
 <td><p class="btn btn-default disabled">当前使用</p></td>
 {{else}}
-<td><a href="./theme.php?set={{.Dir}}" class="btn btn-label btn-primary"><label><i class="mdi mdi-checkbox-marked-circle-outline"></i></label>使用</a></td>
+<td><a href="./theme?set={{.Dir}}" class="btn btn-label btn-primary"><label><i class="mdi mdi-checkbox-marked-circle-outline"></i></label>使用</a></td>
 {{end}}
 </tr>
 {{end}}

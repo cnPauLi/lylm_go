@@ -7,8 +7,8 @@
           <div class="card-body">
 
             {{if .Page.Add}}
-              <h4>新增链接<a class="btn" href="./link.php"><i class="mdi mdi-chevron-left"></i>返回</a></h4>
-              <form id="addLinkForm" action="./ajax_link.php?submit=add_link" method="POST">
+              <h4>新增链接<a class="btn" href="./link"><i class="mdi mdi-chevron-left"></i>返回</a></h4>
+              <form id="addLinkForm" action="./ajax_link?submit=add_link" method="POST">
                 <div class="form-group">
                   <label for="add_url">*URL链接地址:</label>
                   <div class="input-group">
@@ -37,7 +37,7 @@
                   </div>
                   <small class="help-block"><b>可选方案：</b><br>
                     1. 填写图标的<code>URL</code>地址，如<code>/img/logo.png</code>或<code>http://www.xxx.com/img/logo.png</code><br>
-                    2. 粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a><br>
+                    2. 粘贴图标的<code>SVG</code>代码，<a href="./help?doc=icon" target="_blank">查看教程</a><br>
                     3. 留空使用默认图标<br>
                     4. 从本地上传</small>
                 </div>
@@ -63,11 +63,11 @@
                   <input type="submit" class="btn btn-primary d-block w-100" value="添加">
                 </div>
               </form>
-              <a href="./link.php"><i class="mdi mdi-chevron-left"></i>返回</a>
+              <a href="./link"><i class="mdi mdi-chevron-left"></i>返回</a>
 
             {{else if .Page.Edit}}
-              <h4>修改链接信息  <a class="btn" href="./link.php?page={{.Page.Page}}"><i class="mdi mdi-chevron-left"></i>返回</a></h4>
-              <form id="editLinkForm" action="./ajax_link.php?submit=edit_link&id={{.Page.Edit.ID}}" method="POST">
+              <h4>修改链接信息  <a class="btn" href="./link?page={{.Page.Page}}"><i class="mdi mdi-chevron-left"></i>返回</a></h4>
+              <form id="editLinkForm" action="./ajax_link?submit=edit_link&id={{.Page.Edit.ID}}" method="POST">
                 <div class="form-group">
                   <label for="edit_url">*URL链接地址:</label>
                   <div class="input-group">
@@ -96,7 +96,7 @@
                   </div>
                   <small class="help-block"><b>可选方案：</b><br>
                     1. 填写图标的<code>URL</code>地址，如<code>/img/logo.png</code>或<code>http://www.xxx.com/img/logo.png</code><br>
-                    2. 粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a><br>
+                    2. 粘贴图标的<code>SVG</code>代码，<a href="./help?doc=icon" target="_blank">查看教程</a><br>
                     3. 留空使用默认图标<br>
                     4. 从本地上传</small>
                 </div>
@@ -118,7 +118,7 @@
                   </select>
                   <small class="help-block"><code>注意：对链接所在的分组加密后，单独设置的链接加密将会失效</code><br>
                     加密后只能通过输入密码访问，使用该功能先配置加密组
-                    <a href="./pwd.php" target="_blank">管理加密组</a></small>
+                    <a href="./pwd" target="_blank">管理加密组</a></small>
                 </div>
                 <div class="form-group">
                   <label for="edit_desc">链接描述:</label>
@@ -134,7 +134,7 @@
                   <input type="submit" class="btn btn-primary d-block w-100" value="修改">
                 </div>
               </form>
-              <a href="./link.php?page={{.Page.Page}}"><i class="mdi mdi-chevron-left"></i>返回</a>
+              <a href="./link?page={{.Page.Page}}"><i class="mdi mdi-chevron-left"></i>返回</a>
 
             {{else}}
               <div id="listTable"></div>
@@ -204,7 +204,7 @@
                     action: function() {
                       lightyear.loading('show');
                       $.ajax({
-                        url: './ajax_link.php?submit=edit_link&id=' + existId,
+                        url: './ajax_link?submit=edit_link&id=' + existId,
                         method: 'POST',
                         data: new FormData(form),
                         processData: false,

@@ -73,19 +73,19 @@ func Setup(h *Handler) *gin.Engine {
 	// 主题点击统计占位接口（dashlite / quality6.0 等主题的 JS 会向此上报点击）
 	r.POST("/clitool", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"code": 200}) })
 
-	// 静态资源：assets / template / site/static / files（屏蔽 .php 源码）
-	// assets 下需放行 bing.php / cron.php 两个动态壁纸接口
+	// 静态资源：assets / template / site/static / files（拦截 PHP 脚本文件）
+	// assets 下需放行 bing / cron 两个动态壁纸接口
 	r.GET("/assets/*filepath", h.assetsHandler())
 	r.GET("/template/*filepath", h.staticHandler(h.Cfg.Path("template")))
 	r.GET("/site/static/*filepath", h.staticHandler(h.Cfg.Path("site", "static")))
 	r.GET("/files/*filepath", h.staticHandler(h.Cfg.Path("files")))
 
 	// 验证码 / 上传 / 访问密码 / 二维码
-	r.GET("/include/validatecode.php", h.ValidateCode)
-	r.POST("/include/file.php", upload.Handler(h.Cfg, h.Store, h.Log))
-	r.GET("/include/go.php", pages.PasswordHandler(h.Store, h.Log))
-	r.POST("/include/go.php", pages.PasswordHandler(h.Store, h.Log))
-	r.GET("/include/qrcode.php", pages.Qrcode(h.Log))
+	r.GET("/include/validatecode", h.ValidateCode)
+	r.POST("/include/file", upload.Handler(h.Cfg, h.Store, h.Log))
+	r.GET("/include/go", pages.PasswordHandler(h.Store, h.Log))
+	r.POST("/include/go", pages.PasswordHandler(h.Store, h.Log))
+	r.GET("/include/qrcode", pages.Qrcode(h.Log))
 
 	// 固定功能页
 	r.GET("/about/", pages.About(h.Store, h.Pages, h.Log))
@@ -94,9 +94,9 @@ func Setup(h *Handler) *gin.Engine {
 	applyHandler := pages.Apply(h.Cfg, h.Store, h.Pages, h.Log)
 	r.GET("/apply/", applyHandler)
 	r.GET("/apply", applyHandler)
-	r.GET("/apply/index.php", applyHandler)
-	r.POST("/apply/index.php", applyHandler)
-	r.POST("/apply/wxplus.php", pages.WxPlus(h.Cfg, h.Store, h.Log))
+	r.POST("/apply/", applyHandler)
+	r.POST("/apply", applyHandler)
+	r.POST("/apply/wxplus", pages.WxPlus(h.Cfg, h.Store, h.Log))
 	r.StaticFile("/apply/apply.js", h.Cfg.Path("apply", "apply.js"))
 
 	pwdHandler := pages.Pwd(h.Store, h.Pages, h.Log)
@@ -194,17 +194,17 @@ func (h *Handler) baseData(c *gin.Context, tplName string) *view.ViewData {
 // unlocked 读取会话中已解锁的加密组
 func (h *Handler) unlocked(c *gin.Context) []int { return webutil.UnlockedIDs(c) }
 
-// assetsHandler 服务 /assets/* ，并放行 bing.php / cron.php 动态接口
+// assetsHandler 服务 /assets/* ，并放行 bing / cron 动态接口
 func (h *Handler) assetsHandler() gin.HandlerFunc {
 	static := h.staticHandler(h.Cfg.Path("assets"))
 	bing := pages.BingImage(h.Log)
 	cron := pages.CronImage(h.Cfg, h.Store, h.Log)
 	return func(c *gin.Context) {
 		switch c.Param("filepath") {
-		case "/img/bing.php":
+		case "/img/bing":
 			bing(c)
 			return
-		case "/img/cron.php":
+		case "/img/cron":
 			cron(c)
 			return
 		}
@@ -212,7 +212,7 @@ func (h *Handler) assetsHandler() gin.HandlerFunc {
 	}
 }
 
-// staticHandler 提供静态文件，屏蔽 .php 源码
+// staticHandler 提供静态文件，拦截 PHP 脚本文件
 func (h *Handler) staticHandler(root string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rel := strings.TrimPrefix(c.Param("filepath"), "/")

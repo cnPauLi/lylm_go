@@ -6,7 +6,7 @@ function listTable(query) {
     var ii = layer.load(2, { shade: [0.1, '#fff'] });
     $.ajax({
         type: 'GET',
-        url: 'table_group.php?' + query,
+        url: 'table_group?' + query,
         dataType: 'html',
         cache: false,
         success: function (data) {
@@ -52,7 +52,7 @@ function save_order() {
 
     lightyear.loading('show');
     $.ajax({
-        url: "group.php?set=sort",
+        url: "group?set=sort",
         method: "POST",
         data: { groups: groups },
         success: function (data) {
@@ -73,7 +73,7 @@ function save_order() {
 function on_group(id) {
     lightyear.loading('show');
     $.ajax({
-        url: "group.php?set=on",
+        url: "group?set=on",
         method: "POST",
         data: { group_id: id },
         success: function (data) {
@@ -93,7 +93,7 @@ function on_group(id) {
 function off_group(id) {
     lightyear.loading('show');
     $.ajax({
-        url: "group.php?set=off",
+        url: "group?set=off",
         method: "POST",
         data: { group_id: id },
         success: function (data) {
@@ -124,7 +124,7 @@ function del_group(id) {
                 action: function () {
                     lightyear.loading('show');
                     $.ajax({
-                        url: "group.php?set=del",
+                        url: "group?set=del",
                         method: "POST",
                         data: {
                             group_id: id

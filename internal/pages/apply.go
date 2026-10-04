@@ -20,11 +20,11 @@ import (
 	"lylme_spage/internal/webutil"
 )
 
-// Apply 收录申请页：/apply/、/apply、/apply/index.php（GET/POST）
+// Apply 收录申请页：/apply/、/apply（GET/POST）
 func Apply(cfg *config.Config, store *site.Store, engine *Engine, log *logger.Logger) gin.HandlerFunc {
 	applySvc := service.NewApplyService(store)
 	return func(c *gin.Context) {
-		// 1) 抓取目标站点 head 信息（AJAX: index.php?url=）
+		// 1) 抓取目标站点 head 信息（AJAX: ?url=）
 		if rawURL := c.Query("url"); rawURL != "" {
 			c.Header("Content-Type", "application/json")
 			ip := webutil.RealIP(c.Request)
@@ -46,7 +46,7 @@ func Apply(cfg *config.Config, store *site.Store, engine *Engine, log *logger.Lo
 			return
 		}
 
-		// 2) 提交收录申请（AJAX: index.php?submit=post）
+		// 2) 提交收录申请（AJAX: ?submit=post）
 		if c.Query("submit") == "post" || c.PostForm("submit") == "post" {
 			c.Header("Content-Type", "application/json; charset=utf-8")
 			if !webutil.VerifyCaptcha(c, c.PostForm("authcode")) {
@@ -151,7 +151,7 @@ func validApplyURL(s string) bool {
 	return u.Host != ""
 }
 
-// WxPlus 微信推送 /apply/wxplus.php
+// WxPlus 微信推送 /apply/wxplus
 func WxPlus(cfg *config.Config, store *site.Store, log *logger.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if strings.TrimSpace(store.Get("wxplus", "")) == "" {
@@ -165,7 +165,7 @@ func WxPlus(cfg *config.Config, store *site.Store, log *logger.Logger) gin.Handl
 			_, _ = c.Writer.WriteString("请求频繁，请稍后再试")
 			return
 		}
-		// 原版 wxPlus() 的推送逻辑位于混淆代码中（include/include.php），
+		// 原版 wxPlus() 的推送逻辑位于混淆代码中（include/include 混淆脚本），
 		// 按 AGENTS.md 安全规范不予移植；此处仅保留鉴权与限流并返回成功。
 		c.JSON(http.StatusOK, gin.H{"code": 200, "msg": "ok", "data": "ok"})
 	}

@@ -141,7 +141,7 @@ $(function () {
     }
 
     function postAction(set) {
-        $.post('ajax_mcp.php?set=' + set, { csrf_token: csrfToken }, function (res) {
+        $.post('ajax_mcp?set=' + set, { csrf_token: csrfToken }, function (res) {
             if (res.code === 200) {
                 applyData(res.data);
                 lightyear.notify(res.msg || '操作成功', 'success', 2000);

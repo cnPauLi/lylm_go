@@ -41,7 +41,7 @@ type LinkBrief struct {
 
 // LinkGroupTable 按组查看的链接表格数据（供 table_link.html 片段）
 type LinkGroupTable struct {
-	Page       int // 当前查看的分组 ID（即原版 table_link.php 的 page 参数）
+	Page       int // 当前查看的分组 ID（即原版链接表格页的 page 参数）
 	Total      int64
 	GroupCount int64
 	GPwd       int
@@ -63,8 +63,8 @@ func NewLinkService(store *site.Store, cfg *config.Config) *LinkService {
 
 // GroupTable 返回 group_order ASC 的全部分组（含 GroupNames 映射、当前组 GPwd）、
 // 链接总数 Total、指定组链接（link_order ASC）与组内计数。
-// groupID 语义上即原版 table_link.php 的 page 参数；<=0 归一为 1。
-// 各查询相互独立、失败不阻断（与原 table_link.php 一致）：单个查询失败时对应字段保持零值。
+// groupID 语义上即原版链接表格页的 page 参数；<=0 归一为 1。
+// 各查询相互独立、失败不阻断（与原版链接表格页一致）：单个查询失败时对应字段保持零值。
 func (s *LinkService) GroupTable(groupID int) *LinkGroupTable {
 	if groupID <= 0 {
 		groupID = 1

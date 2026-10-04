@@ -6,7 +6,7 @@
 <div class="toolbar-btn-action mb-2 d-flex flex-row flex-wrap justify-content-around d-md-block">
   <button class="my-1 btn btn-label btn-info" id="save_order" style="display:none" onclick="save_order()">
     <label><i class="mdi mdi-checkbox-marked-circle-outline"></i></label> 保存排序</button>
-  <a href="./link.php?set=add" class="my-1 btn btn-label btn-primary">
+  <a href="./link?set=add" class="my-1 btn btn-label btn-primary">
     <label><i class="mdi mdi-plus" aria-hidden="true"></i></label>新增</a>
   <button type="button" class="my-1 btn btn-label btn-success" onclick="on_link()">
     <label><i class="mdi mdi-check" aria-hidden="true"></i></label>启用</button>
@@ -23,7 +23,7 @@
     <button type="button" class="my-1 btn btn-label btn-pink" onclick="pwd_links()">
       <label><i class="mdi mdi-key-variant" aria-hidden="true"></i></label>分组已加密</button>
   {{end}}
-  <a href="./batch_add.php" target="_blank" class="my-1 btn btn-label btn-purple">
+  <a href="./batch_add" target="_blank" class="my-1 btn btn-label btn-purple">
     <label><i class="mdi mdi-import" aria-hidden="true"></i></label>批量导入</a>
   <button type="button" class="my-1 btn btn-label btn-dark" onclick="check_group_links()">
     <label><i class="mdi mdi-radar" aria-hidden="true"></i></label>失效检测</button>

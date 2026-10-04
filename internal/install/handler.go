@@ -78,8 +78,7 @@ func (h *Handler) Register(r *gin.Engine, basePath string) {
 	}
 	r.GET(base, func(c *gin.Context) { c.Redirect(http.StatusMovedPermanently, base+"/") })
 	r.GET(base+"/", h.index)
-	r.GET(base+"/index.php", h.index)
-	r.POST(base+"/index.php", h.index)
+	r.POST(base+"/", h.index)
 	r.POST(base+"/save", h.index)
 	r.GET(base+"/templates/*filepath", h.staticHandler())
 }
@@ -379,7 +378,7 @@ func (h *Handler) failStep(c *gin.Context, step int, msg string) {
 	}
 }
 
-// staticHandler 提供 install/templates 下的静态资源，屏蔽 .php 源码
+// staticHandler 提供 install/templates 下的静态资源，拦截脚本源码文件直接返回 404
 func (h *Handler) staticHandler() gin.HandlerFunc {
 	root := h.cfg.Path("install", "templates")
 	return func(c *gin.Context) {

@@ -170,7 +170,7 @@
 			{{ if .Page.PwdEnabled }}
 				{{ if not .Page.IsLoggedIn }}
 					<p>请输入密码登录</p>
-					<form name="form" action="../include/go.php" method="POST">
+					<form name="form" action="../include/go" method="POST">
 						<div class="form">
 							{{ .CSRF }}
 							<div class="form-item">
@@ -183,7 +183,7 @@
 						</div>
 					</form>
 				{{ else }}
-					<form name="form" action="../include/go.php" method="POST">
+					<form name="form" action="../include/go" method="POST">
 						<div class="form">
 							{{ .CSRF }}
 							<div class="button-panel">

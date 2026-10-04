@@ -8,7 +8,7 @@
 {{if eq .Page.Set "add"}}
 <h4>新增分组</h4>
 <div class="panel-body">
-<form action="./group.php?set=add_submit" method="POST">
+<form action="./group?set=add_submit" method="POST">
 <div class="form-group">
 <label>*名称:</label><br>
 <input type="text" class="form-control" name="group_name" value="" required>
@@ -31,7 +31,7 @@
 </div>
 <div id="icon_svg_area" style="display:none">
 <textarea class="form-control" name="group_icon_svg" id="group_icon_svg_input" rows="4" placeholder="粘贴SVG代码"></textarea>
-<small class="help-block">粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a></small>
+<small class="help-block">粘贴图标的<code>SVG</code>代码，<a href="./help?doc=icon" target="_blank">查看教程</a></small>
 </div>
 <small class="help-block">留空使用默认图标</small>
 </div>
@@ -45,18 +45,18 @@
 </select>
 <small class="help-block"><code>注意：对链接所在的分组加密后，单独设置的链接加密将会失效</code><br>
 加密后只能通过输入密码访问，使用该功能先配置加密组
-<a href="./pwd.php" target="_blank">管理加密组</a></small>
+<a href="./pwd" target="_blank">管理加密组</a></small>
 </div>
 <div class="form-group">
 <input type="submit" class="btn btn-primary d-block w-100" value="确定添加">
 </div>
 </form>
-<br/><a href="./group.php">&lt;&lt;返回分组列表</a>
+<br/><a href="./group">&lt;&lt;返回分组列表</a>
 </div>
 {{else if eq .Page.Set "edit"}}
 <h4>修改分组信息</h4>
 <div class="panel-body">
-<form action="./group.php?set=edit_submit&id={{.Page.Edit.GroupID}}" method="POST">
+<form action="./group?set=edit_submit&id={{.Page.Edit.GroupID}}" method="POST">
 <div class="form-group">
 <label>*名称:</label><br>
 <input type="text" class="form-control" name="group_name" value="{{.Page.Edit.GroupName}}" required>
@@ -79,7 +79,7 @@
 </div>
 <div id="icon_svg_area"{{if ne .Page.IconType "svg"}} style="display:none"{{end}}>
 <textarea class="form-control" name="group_icon_svg" id="group_icon_svg_input" rows="4" placeholder="粘贴SVG代码">{{if eq .Page.IconType "svg"}}{{.Page.IconVal}}{{end}}</textarea>
-<small class="help-block">粘贴图标的<code>SVG</code>代码，<a href="./help.php?doc=icon" target="_blank">查看教程</a></small>
+<small class="help-block">粘贴图标的<code>SVG</code>代码，<a href="./help?doc=icon" target="_blank">查看教程</a></small>
 </div>
 <small class="help-block">留空使用默认图标</small>
 </div>
@@ -93,13 +93,13 @@
 </select>
 <small class="help-block"><code>优先级：分组加密&gt;链接加密</code><br>
 加密后只能通过输入密码访问，使用该功能先配置加密组
-<a href="./pwd.php" target="_blank">管理加密组</a></small>
+<a href="./pwd" target="_blank">管理加密组</a></small>
 </div>
 <div class="form-group">
 <input type="submit" class="btn btn-primary d-block w-100" value="确定修改">
 </div>
 </form>
-<br/><a href="./group.php">&lt;&lt;返回分组列表</a>
+<br/><a href="./group">&lt;&lt;返回分组列表</a>
 </div>
 {{else}}
 <div id="listTable"></div>
@@ -119,7 +119,7 @@ function uploadimg() {
     formData.append("file", $("#group_icon_file")[0].files[0]);
     $.ajax({
         method: 'POST',
-        url: '/include/file.php',
+        url: '/include/file',
         data: formData,
         timeout: 20000,
         cache: false,
@@ -163,7 +163,7 @@ function switchIconType(type) {
         }
     }
 }
-$(document).on('submit', 'form[action*="group.php"]', function() {
+$(document).on('submit', 'form[action*="group"]', function() {
     var type = $('input[name="icon_type"]:checked').val();
     if (type === 'svg') {
         $('#group_icon_input').val($('#group_icon_svg_input').val());

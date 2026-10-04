@@ -21,7 +21,7 @@ function gurl() {
 
 //生成验证码
 function recode() {
-    $('#captcha_img').attr('src', '../include/validatecode.php?r=' + Math.random());
+    $('#captcha_img').attr('src', '../include/validatecode?r=' + Math.random());
       layer.msg('验证码已刷新');
     $("input[name=\'authcode\']").val('');
 }
@@ -33,7 +33,7 @@ function wxPlus() {
         return false;
     }
     $.ajax({
-        url: "./wxplus.php?wx=plus",
+        url: "./wxplus?wx=plus",
         type: "POST",
         data: {
             wx_name: name,
@@ -56,7 +56,7 @@ function submit() {
         return false;
     }
     $.ajax({
-        url: "index.php?submit=post",
+        url: "./?submit=post",
         type: "POST",
         dataType: "json",
         data: {
@@ -118,7 +118,7 @@ function get_url() {
     }
 
     $.ajax({
-        url: "index.php",
+        url: "./",
         type: "GET",
         dataType: "json",
         data: { url: url },
@@ -154,7 +154,7 @@ function get_url() {
 //抓取图标
 function downloadimg(url, referer) {
     $.ajax({
-        url: "/include/file.php",
+        url: "/include/file",
         type: "POST",
         dataType: "json",
         data: { url: url, referer: referer },
@@ -183,7 +183,7 @@ function uploadimg(e) {
     formData.append("file", $("#file")[0].files[0]);
     $.ajax({
         method: 'POST',
-        url: '/include/file.php',
+        url: '/include/file',
         data: formData,
         timeout: 20000,
         cache: false,

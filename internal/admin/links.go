@@ -48,7 +48,7 @@ type TableLinkData struct {
 	GroupNames map[int]string
 }
 
-// LinkPage 链接管理页 link.php
+// LinkPage 链接管理页 link
 func (h *Handler) LinkPage(c *gin.Context) {
 	groups, pwds := h.allGroupsPwds()
 	page := queryInt(c, "page")
@@ -71,12 +71,12 @@ func (h *Handler) LinkPage(c *gin.Context) {
 		lp.Edit = &row
 		lp.Color = colorFromName(row.Name)
 	}
-	data := h.newData(c, "链接管理", "link.php", "link")
+	data := h.newData(c, "链接管理", "link", "link")
 	data.Page = lp
 	h.render(c, "link.html", data)
 }
 
-// TableLink table_link.php?page=<group_id> 片段
+// TableLink table_link?page=<group_id> 片段
 func (h *Handler) TableLink(c *gin.Context) {
 	gt := h.LinkSvc.GroupTable(queryInt(c, "page"))
 	td := &TableLinkData{
@@ -89,7 +89,7 @@ func (h *Handler) TableLink(c *gin.Context) {
 		GroupNames: gt.GroupNames,
 	}
 
-	data := h.newData(c, "", "table_link.php", "link")
+	data := h.newData(c, "", "table_link", "link")
 	data.Page = td
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	if err := h.Engine.Render(c.Writer, "table_link.html", data); err != nil {
@@ -111,7 +111,7 @@ func (h *Handler) allGroupsPwds() ([]models.Group, []models.Pwd) {
 	return groups, pwds
 }
 
-// mvGroupJS 生成原版 link.php 中的 mv_group 下拉 HTML（供 jquery-confirm 使用）
+// mvGroupJS 生成原版链接管理页中的 mv_group 下拉 HTML（供 jquery-confirm 使用）
 func (h *Handler) mvGroupJS(groups []models.Group) string {
 	var b strings.Builder
 	b.WriteString(`var mv_group = '<form action="" class="formName">' + '<select class="form-control group_id" required><option value="">请选择分组...</option>'`)
@@ -122,14 +122,14 @@ func (h *Handler) mvGroupJS(groups []models.Group) string {
 	return b.String()
 }
 
-// pwdListJS 生成原版 link.php 中的 pwd_list 下拉 HTML
+// pwdListJS 生成原版链接管理页中的 pwd_list 下拉 HTML
 func (h *Handler) pwdListJS(pwds []models.Pwd) string {
 	var b strings.Builder
 	b.WriteString(`var pwd_list = '<form action="" class="formName">' + '<select class="form-control pwd_id" required>'`)
 	for _, p := range pwds {
 		b.WriteString(` + '<option value="` + strconv.Itoa(p.PwdID) + `">` + strconv.Itoa(p.PwdID) + ` - ` + jsQuote(p.PwdName) + `</option>'`)
 	}
-	b.WriteString(` + '<option value="0">0 - 取消加密</option></select><br><a href="./pwd.php" target="_blank">管理加密组</a>';`)
+	b.WriteString(` + '<option value="0">0 - 取消加密</option></select><br><a href="./pwd" target="_blank">管理加密组</a>';`)
 	return b.String()
 }
 
@@ -160,7 +160,7 @@ func colorFromName(name string) string {
 	return rest[:end]
 }
 
-// AjaxLink ajax_link.php 统一入口
+// AjaxLink ajax_link 统一入口
 func (h *Handler) AjaxLink(c *gin.Context) {
 	switch c.Query("submit") {
 	case "add_tag":
@@ -456,7 +456,7 @@ func (h *Handler) ajaxEditForm(c *gin.Context) {
 		return
 	}
 	groups, pwds := h.allGroupsPwds()
-	data := h.newData(c, "编辑链接", "ajax_link.php", "link")
+	data := h.newData(c, "编辑链接", "ajax_link", "link")
 	data.Page = &editFormPage{ID: id, Link: row, Groups: groups, Pwds: pwds, Color: colorFromName(row.Name)}
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	if err := h.Engine.Render(c.Writer, "edit_link.html", data); err != nil {

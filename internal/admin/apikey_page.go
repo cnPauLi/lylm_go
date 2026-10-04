@@ -52,7 +52,7 @@ func mcpConfigJSON(root, key string) string {
 	return string(b)
 }
 
-// MCPPage 接口与 MCP 管理页面（mcp.php），受登录中间件保护
+// MCPPage 接口与 MCP 管理页面（mcp），受登录中间件保护
 func (h *Handler) MCPPage(c *gin.Context) {
 	root := siteURL(c, 2)
 	info := h.KeySvc.Get()
@@ -66,12 +66,12 @@ func (h *Handler) MCPPage(c *gin.Context) {
 		page.CreatedAt = info.CreatedAt.Format("2006-01-02 15:04:05")
 		page.MCPConfig = mcpConfigJSON(root, info.Key)
 	}
-	data := h.newData(c, "接口与 MCP", "mcp.php", "mcp")
+	data := h.newData(c, "接口与 MCP", "mcp", "mcp")
 	data.Page = page
 	h.render(c, "mcp.html", data)
 }
 
-// AjaxMCP 密钥管理 JSON 端点（ajax_mcp.php?set=ensure|regenerate），
+// AjaxMCP 密钥管理 JSON 端点（ajax_mcp?set=ensure|regenerate），
 // 经 frag 鉴权与 CSRF 校验，响应风格与现有 admin ajax 一致：{code,msg,data}。
 func (h *Handler) AjaxMCP(c *gin.Context) {
 	if c.Request.Method != http.MethodPost {
