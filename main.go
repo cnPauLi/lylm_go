@@ -70,7 +70,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Pages: pageEngine, Admin: adminHandler, Log: log}
+		h := &router.Handler{Cfg: cfg, Store: store, Engine: engine, Pages: pageEngine, Admin: adminHandler, Log: log, AppVersion: AppVersion}
 		r := router.Setup(h)
 		// 主路由同样挂载安装向导，使 /install/ 在已连接数据库时也可用
 		installHandler.Register(r, "/install")

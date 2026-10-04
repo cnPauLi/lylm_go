@@ -82,7 +82,7 @@
 
 - **Priority**: high
 - **Depends On**: T3
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/group.go`，承接 [groups.go](file:///Volumes/data/lylm_go/internal/admin/groups.go) 全部业务规则：
@@ -96,7 +96,7 @@
 - rule：admin 路由 `group.php` 全部既有 set 分支（add/edit/del/on/off/sort）输出行为与重构前等价；证据：处理器测试/回归记录。
 - rule：`internal/service` 不 import gin；证据：grep。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [errors.go](file:///Volumes/data/lylm_go/internal/service/errors.go)、[group.go](file:///Volumes/data/lylm_go/internal/service/group.go)（List/Get/Create/Update/Delete/SetStatus/Sort + NormalizeGroupIcon）、[group_test.go](file:///Volumes/data/lylm_go/internal/service/group_test.go) 9 用例；[admin/groups.go](file:///Volumes/data/lylm_go/internal/admin/groups.go) 薄化，Handler 新增 GroupSvc。顺带修复 apikey_test 一个 flaky 用例。主 agent 独立执行 build/vet/test 全部通过（含 go test ./... 全 ok），grep 确认 service 无 gin import。
 
 ---
 
@@ -104,7 +104,7 @@
 
 - **Priority**: high
 - **Depends On**: T4
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/link.go`，承接 [links.go](file:///Volumes/data/lylm_go/internal/admin/links.go) 中链接相关全部规则：
@@ -120,7 +120,7 @@
 - rule：admin `ajax_link.php` 上述各分支响应 JSON（code/msg）与重构前等价；证据：处理器测试。
 - rubric（局部，0–2）：链接域规则覆盖完整度（校验/排序/批量/查重），≥1.5 为通过；证据：单测与评审。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [link.go](file:///Volumes/data/lylm_go/internal/service/link.go)（GroupTable/Get/All/Create/Update/BatchDelete/BatchSetStatus/BatchMoveGroup/BatchSetPwd/Sort/FetchHead + LinkInput/LinkCreateResult/LinkBrief 强类型）、[link_test.go](file:///Volumes/data/lylm_go/internal/service/link_test.go) 10 用例；errors.go 增补 ErrLinkNotFound/ErrLinkHeadUnreachable；[admin/links.go](file:///Volumes/data/lylm_go/internal/admin/links.go) 薄化（Tag/Sou 四函数原样保留），Handler 新增 LinkSvc。主 agent 独立 build/vet/test 全通过，抽查 add_link 的 200/201 响应与原字段一致，service 无 gin 依赖。
 
 ---
 
@@ -128,7 +128,7 @@
 
 - **Priority**: high
 - **Depends On**: T5
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/tag.go`、`sou.go`、`pwd.go`，承接对应规则：
@@ -142,7 +142,7 @@
 - rule：三域全部既有页面/AJAX 操作经 service 后行为等价；证据：处理器测试与回归记录。
 - rule：重复业务规则不存在于 admin（规则仅 service 一份）；证据：grep/评审。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [tag.go](file:///Volumes/data/lylm_go/internal/service/tag.go)、[sou.go](file:///Volumes/data/lylm_go/internal/service/sou.go)、[pwd.go](file:///Volumes/data/lylm_go/internal/service/pwd.go) 及 12 个单测；errors 增补三域 NotFound；admin misc.go/links.go 薄化，Handler 新增 TagSvc/SouSvc/PwdSvc。主 agent 独立 build/vet/test 全通过，service 无 gin 依赖。
 
 ---
 
@@ -150,7 +150,7 @@
 
 - **Priority**: high
 - **Depends On**: T6
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/config.go`（或 `settings.go`），承接 [settings.go](file:///Volumes/data/lylm_go/internal/admin/settings.go) 规则：
@@ -165,7 +165,7 @@
 - rule：错误旧密码不能改密；正确旧密码 + 一致新密码可改密并保持 `md5("lylme"+pwd)` 存储；证据：service 单测。
 - rule：set/about/user 三个页面 GET/POST 输出与重构前等价；证据：处理器测试/回归。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [configservice.go](file:///Volumes/data/lylm_go/internal/service/configservice.go)（站点设置/关于页/账号/系统安全 + AdminPasswordHash 唯一哈希实现）及 [测试](file:///Volumes/data/lylm_go/internal/service/configservice_test.go)；admin settings.go/auth.go 薄化（登录改用 service.AdminPasswordHash，行为不变），Handler 新增 ConfigSvc。主 agent 独立 build/vet/test 全通过，service 无 gin 依赖。
 
 ---
 
@@ -173,7 +173,7 @@
 
 - **Priority**: high
 - **Depends On**: T7
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/apply.go`，承接收录规则：
@@ -186,7 +186,7 @@
 - rule：审核通过恰好新增 1 条链接且 apply_status=1；拒绝不新增链接；证据：service 单测。
 - rule：admin apply 页面与 ajax_apply 输出行为等价；证据：处理器测试/回归。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [apply.go](file:///Volumes/data/lylm_go/internal/service/apply.go)（List/Settings/Create/Get/Update/SetStatus/BatchDelete，审核通过写链接+幂等）及 [测试](file:///Volumes/data/lylm_go/internal/service/apply_test.go) 8 用例；admin misc.go 薄化并删除 insertLinkFromApply；[pages/apply.go](file:///Volumes/data/lylm_go/internal/pages/apply.go) 前台提交复用同一 service（验证码/限流/响应不变），Handler 新增 ApplySvc。主 agent 独立 build/vet/test 全通过，service 无 gin 依赖。
 
 ---
 
@@ -194,7 +194,7 @@
 
 - **Priority**: medium
 - **Depends On**: T8
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建 `internal/service/theme.go`，承接：
@@ -207,7 +207,7 @@
 - rule：保存主题配置写 `theme_config_<tpl>` 且未提交的 switch 补 0、checkbox 补空数组；证据：service 单测。
 - rule：theme/theme_setting/ajax_theme 输出与重构前等价；证据：处理器测试/回归。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [theme.go](file:///Volumes/data/lylm_go/internal/service/theme.go)（List/Current/Switch/ConfigFields/ConfigValues/SaveConfig，含 switch/checkbox 默认补齐）及 [测试](file:///Volumes/data/lylm_go/internal/service/theme_test.go) 6 用例；admin misc.go 主题处理器薄化（展示辅助 renderThemeForm 保留），Handler 新增 ThemeSvc。有意差异：Switch 现校验主题存在性（原版不校验，配置键不再被污染，前台渲染无变化）。主 agent 独立 build/vet/test 全通过，service 无 gin 依赖。
 
 ---
 
@@ -215,7 +215,7 @@
 
 - **Priority**: medium
 - **Depends On**: T9
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 新建：
@@ -230,7 +230,7 @@
 - rule：dashboard/cleanimg/wxplus/license 页面输出与重构前等价；证据：处理器测试/回归。
 - rule：至此 admin 包中无业务规则残留（grep 关键规则只在 service）；证据：代码检查。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [dashboard.go](file:///Volumes/data/lylm_go/internal/service/dashboard.go)、[filecleanup.go](file:///Volumes/data/lylm_go/internal/service/filecleanup.go)、[wxplus.go](file:///Volumes/data/lylm_go/internal/service/wxplus.go)、[license.go](file:///Volumes/data/lylm_go/internal/service/license.go) 及 7 个单测；ConfigService 增补微信/授权读写；admin dashboard.go/misc.go 薄化（cleanimg 模板经 toCleanImgPage 映射），Handler 新增 DashboardSvc/FileCleanupSvc。主 agent 独立 build/vet/test 全通过，service 无 gin 依赖。
 
 ---
 
@@ -238,7 +238,7 @@
 
 - **Priority**: high
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - 在 `internal/api` 新建 `group_handler.go`、`link_handler.go`，于 `/api/v1` 注册：
@@ -253,7 +253,7 @@
 - rule：`POST /links` 对重复 URL 返回文档声明的冲突结构（200 信封内业务码或 409，二者在文档中固定一种并与实现一致）；证据：测试 + 文档核对。
 - rubric（局部，0–2）：入参/出参 schema 与校验完整度 ≥1.5；证据：评审。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [group_handler.go](file:///Volumes/data/lylm_go/internal/api/group_handler.go)（6 端点）、[link_handler.go](file:///Volumes/data/lylm_go/internal/api/link_handler.go)（11 端点）及 43 个集成子测试；service/link.go 增补 ListLinks/SearchLinks（参数化）；重复 URL 固定返回 409「链接已存在」含已存在 id；分域文档 [group.md](file:///Volumes/data/lylm_go/docs/api/group.md)、[link.md](file:///Volumes/data/lylm_go/docs/api/link.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 
@@ -261,7 +261,7 @@
 
 - **Priority**: high
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - `tag_handler.go`：`GET /tags`、`POST /tags`、`PUT /tags/:id`、`DELETE /tags/:id`。
@@ -273,7 +273,7 @@
 - rule：12 个端点全部注册并可用（成功 200，未鉴权 401，参数错误 400，不存在 404）；证据：httptest。
 - rule：docs 对应章节字段与请求/响应结构体一致；证据：核对记录。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [tag_handler.go](file:///Volumes/data/lylm_go/internal/api/tag_handler.go)、[sou_handler.go](file:///Volumes/data/lylm_go/internal/api/sou_handler.go)、[pwd_handler.go](file:///Volumes/data/lylm_go/internal/api/pwd_handler.go) 共 12 端点，15 个集成用例（成功/400/404/401）；删除端点先 Get 校验；Sou alias/name 在 REST 层必填（有意收紧，文档注明）；分域文档 [tag.md](file:///Volumes/data/lylm_go/docs/api/tag.md)、[sou.md](file:///Volumes/data/lylm_go/docs/api/sou.md)、[pwd.md](file:///Volumes/data/lylm_go/docs/api/pwd.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 
@@ -281,7 +281,7 @@
 
 - **Priority**: high
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - `settings_handler.go`：
@@ -299,7 +299,7 @@
 - rule：`POST /apikey/regenerate` 后旧 key 401、新 key 200；证据：httptest 顺序请求。
 - rule：全部端点行为与文档契约一致；证据：测试与核对。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [settings_handler.go](file:///Volumes/data/lylm_go/internal/api/settings_handler.go) 14 端点；ConfigService 增补只读 AllConfig；GET /settings 黑名单屏蔽 admin_pwd/api_key；GET /apikey 仅返回 exists/created_at/masked；regenerate 后旧 key 401、新 key 200；分域文档 [settings.md](file:///Volumes/data/lylm_go/docs/api/settings.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 
@@ -307,7 +307,7 @@
 
 - **Priority**: high
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - `apply_handler.go`：
@@ -322,7 +322,7 @@
 - rule：审核通过端点返回 200 且可在 /links 查到新增链接；拒绝不新增；证据：跨端点测试。
 - rule：status 枚举校验（非 1/2 → 400）；证据：测试。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [apply_handler.go](file:///Volumes/data/lylm_go/internal/api/apply_handler.go) 6 端点（分页 DTO 带 group_name），20 个集成用例；审核通过后链接数恰好 +1、拒绝不新增、重复通过幂等；非法枚举 400；分域文档 [apply.md](file:///Volumes/data/lylm_go/docs/api/apply.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 
@@ -330,7 +330,7 @@
 
 - **Priority**: medium
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - `theme_handler.go`：
@@ -342,7 +342,7 @@
 - rule：切换主题后 `GET /themes` 当前主题变化且前台首页使用新主题；证据：测试。
 - rule：配置端点结构与文档一致；证据：测试与核对。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [theme_handler.go](file:///Volumes/data/lylm_go/internal/api/theme_handler.go) 4 端点（列表/切换/配置读/配置写，PUT config 为全量替换）；测试指向真实项目根主题并在 t.Cleanup 恢复 default 主题与清理测试配置；分域文档 [theme.md](file:///Volumes/data/lylm_go/docs/api/theme.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 
@@ -350,7 +350,7 @@
 
 - **Priority**: medium
 - **Depends On**: T10
-- **Status**: pending
+- **Status**: completed
 
 **工作内容**
 - `dashboard_handler.go`：`GET /dashboard`（计数/版本/近 7 天统计）。
@@ -361,7 +361,7 @@
 - rule：`GET /dashboard` 字段（链接/分组/待审/统计）与文档一致；证据：测试。
 - rule：`POST /files/cleanup` 对非法 rel 计数为失败且不删除任何文件；证据：测试。
 
-**Completion Evidence**: _(待填写)_
+**Completion Evidence**: 新建 [dashboard_handler.go](file:///Volumes/data/lylm_go/internal/api/dashboard_handler.go) 3 端点（dashboard 计数/版本、cleanup 扫描、cleanup 删除）；6 个集成用例，非法 rel（../、白名单外、子路径、缺失文件）全部计入 failed 且零删除，空 rels 400；分域文档 [dashboard.md](file:///Volumes/data/lylm_go/docs/api/dashboard.md)。主 agent 统一接线后 build/vet/test 全通过。
 
 ---
 

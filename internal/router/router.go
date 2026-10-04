@@ -18,7 +18,6 @@ import (
 	"lylme_spage/internal/install"
 	"lylme_spage/internal/logger"
 	"lylme_spage/internal/pages"
-	"lylme_spage/internal/service"
 	"lylme_spage/internal/site"
 	"lylme_spage/internal/stats"
 	"lylme_spage/internal/upload"
@@ -28,12 +27,13 @@ import (
 
 // Handler 路由处理器集合
 type Handler struct {
-	Cfg    *config.Config
-	Store  *site.Store
-	Engine *view.Engine
-	Pages  *pages.Engine
-	Admin  *admin.Handler
-	Log    *logger.Logger
+	Cfg        *config.Config
+	Store      *site.Store
+	Engine     *view.Engine
+	Pages      *pages.Engine
+	Admin      *admin.Handler
+	Log        *logger.Logger
+	AppVersion string
 }
 
 // Setup 构建 Gin 路由
@@ -116,8 +116,8 @@ func Setup(h *Handler) *gin.Engine {
 		h.Admin.Register(r)
 	}
 
-	// REST API（/api/v1）；MCP 服务（/mcp）在后续任务挂载；二者共用同一密钥服务
-	api.RegisterV1(r, service.NewAPIKeyService(h.Store))
+	// REST API（/api/v1）；MCP 服务（/mcp）在后续任务挂载；二者共用同一密钥体系
+	api.RegisterV1(r, api.NewDeps(h.Store, h.Cfg, h.AppVersion))
 
 	r.NoRoute(func(c *gin.Context) {
 		c.String(http.StatusNotFound, "404 page not found")

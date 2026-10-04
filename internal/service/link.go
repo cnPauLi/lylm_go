@@ -113,6 +113,60 @@ func (s *LinkService) All() ([]LinkBrief, error) {
 	return out, nil
 }
 
+// ListLinks 分页返回链接（id ASC）：groupID>0 时仅返回该分组；
+// page/pageSize 小于 1 时分别归一为 1/10。
+func (s *LinkService) ListLinks(groupID, page, pageSize int) ([]models.Link, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	q := s.store.DB().Model(&models.Link{})
+	if groupID > 0 {
+		q = q.Where("group_id = ?", groupID)
+	}
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []models.Link
+	if err := q.Order("id ASC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
+// SearchLinks 按关键词分页检索链接：在 name/url/link_desc/link_keywords 上做
+// 参数化 LIKE（%keyword%）；page/pageSize 小于 1 时归一。
+// 关键词匹配为子串匹配，调用方应先做 trim 与长度限制。
+func (s *LinkService) SearchLinks(keyword string, page, pageSize int) ([]models.Link, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	like := "%" + keyword + "%"
+	q := s.store.DB().Model(&models.Link{}).
+		Where("name LIKE ? OR url LIKE ? OR link_desc LIKE ? OR link_keywords LIKE ?",
+			like, like, like, like)
+
+	var total int64
+	if err := q.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []models.Link
+	if err := q.Order("id ASC").
+		Offset((page - 1) * pageSize).Limit(pageSize).
+		Find(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	return rows, total, nil
+}
+
 // Create 新增链接：
 //   - name/url 必填，否则 ErrInvalidInput；
 //   - url 去末尾斜杠查重（url = base OR base+"/"）；命中时返回 Duplicate 结果（携带既有 ID 与本次提交数据，

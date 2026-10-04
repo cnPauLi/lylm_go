@@ -411,6 +411,71 @@ func TestLinkSort(t *testing.T) {
 	}
 }
 
+func TestLinkListAndSearch(t *testing.T) {
+	store, cfg := newLinkStore(t)
+	svc := NewLinkService(store, cfg)
+
+	g := models.Group{GroupName: "组一", GroupOrder: 1}
+	if err := store.DB().Create(&g).Error; err != nil {
+		t.Fatalf("创建分组失败: %v", err)
+	}
+	in := []LinkInput{
+		{Name: "苹果", URL: "https://apple.com", GroupID: g.GroupID, Desc: "水果", Keywords: "red"},
+		{Name: "香蕉", URL: "https://banana.com", GroupID: g.GroupID, Desc: "黄色水果"},
+		{Name: "汽车", URL: "https://car.example", Keywords: "vehicle"},
+	}
+	for _, i := range in {
+		if _, err := svc.Create(i); err != nil {
+			t.Fatalf("Create %+v 失败: %v", i, err)
+		}
+	}
+
+	// 全量分页
+	rows, total, err := svc.ListLinks(0, 1, 10)
+	if err != nil {
+		t.Fatalf("ListLinks 失败: %v", err)
+	}
+	if total != 3 || len(rows) != 3 {
+		t.Fatalf("全量分页异常: total=%d len=%d", total, len(rows))
+	}
+
+	// 按组过滤 + 参数归一（page=0）
+	gRows, gTotal, err := svc.ListLinks(g.GroupID, 0, 1)
+	if err != nil {
+		t.Fatalf("ListLinks 分组过滤失败: %v", err)
+	}
+	if gTotal != 2 || len(gRows) != 1 || gRows[0].Name != "苹果" {
+		t.Fatalf("分组过滤/分页异常: total=%d rows=%+v", gTotal, gRows)
+	}
+
+	// 关键词命中描述
+	hit, hitTotal, err := svc.SearchLinks("水果", 1, 10)
+	if err != nil {
+		t.Fatalf("SearchLinks 失败: %v", err)
+	}
+	if hitTotal != 2 || len(hit) != 2 {
+		t.Fatalf("关键词检索异常: total=%d len=%d", hitTotal, len(hit))
+	}
+
+	// 关键词命中 keywords 列
+	kw, _, err := svc.SearchLinks("vehicle", 1, 10)
+	if err != nil {
+		t.Fatalf("SearchLinks keywords 列失败: %v", err)
+	}
+	if len(kw) != 1 || kw[0].Name != "汽车" {
+		t.Fatalf("keywords 列检索异常: %+v", kw)
+	}
+
+	// 无命中
+	none, noneTotal, err := svc.SearchLinks("不存在的词xyz", 1, 10)
+	if err != nil {
+		t.Fatalf("SearchLinks 无命中失败: %v", err)
+	}
+	if noneTotal != 0 || len(none) != 0 {
+		t.Fatalf("无命中应返回空: total=%d len=%d", noneTotal, len(none))
+	}
+}
+
 func TestLinkFetchHeadUnreachable(t *testing.T) {
 	store, cfg := newLinkStore(t)
 	svc := NewLinkService(store, cfg)

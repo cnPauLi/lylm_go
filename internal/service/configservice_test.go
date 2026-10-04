@@ -284,6 +284,41 @@ func TestConfigUpdateAccountSuccess(t *testing.T) {
 	})
 }
 
+func TestConfigAllConfig(t *testing.T) {
+	store, _ := newLinkStore(t)
+	svc := NewConfigService(store)
+
+	// 空库时返回空 map（非 nil）
+	got := svc.AllConfig()
+	if got == nil {
+		t.Fatal("空库时 AllConfig 应返回非 nil map")
+	}
+	if len(got) != 0 {
+		t.Fatalf("空库时 AllConfig 应为空，实际 %d 项", len(got))
+	}
+
+	// 写入含空串的配置后，全部键值（含空值）均可读出
+	if err := store.Set("title", "测试站", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.Set("icp", "", ""); err != nil {
+		t.Fatal(err)
+	}
+	got = svc.AllConfig()
+	if v, ok := got["title"]; !ok || v != "测试站" {
+		t.Fatalf("AllConfig[title] = %q (ok=%v)", v, ok)
+	}
+	if v, ok := got["icp"]; !ok || v != "" {
+		t.Fatalf("空值配置应原样返回，AllConfig[icp] = %q (ok=%v)", v, ok)
+	}
+
+	// 修改返回 map 不影响 service 后续读取（副本语义）
+	got["title"] = "篡改"
+	if v := svc.AllConfig()["title"]; v != "测试站" {
+		t.Fatalf("返回 map 被外部修改后污染了内部数据：%q", v)
+	}
+}
+
 func TestConfigAdminPasswordHash(t *testing.T) {
 	// md5("lylme"+明文) 32 位小写 hex，空密码同样可哈希
 	if got := AdminPasswordHash(""); got != "0799adf31e720fdd940953c12d4fe220" {

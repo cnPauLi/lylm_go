@@ -95,6 +95,12 @@ func NewConfigService(store *site.Store) *ConfigService {
 	return &ConfigService{store: store}
 }
 
+// AllConfig 返回全部配置项的副本（键 → 原始值），供配置读取类接口使用。
+// 返回 map 与 store 内部缓存无关，调用方可自由修改；空值配置同样原样返回。
+func (s *ConfigService) AllConfig() map[string]string {
+	return s.store.Conf()
+}
+
 // siteSettingDef 网站设置项定义：配置键名、配置描述与入参取值
 type siteSettingDef struct {
 	key  string
